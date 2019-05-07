@@ -29,7 +29,7 @@
 * Implementar MSG_BROADCAST => o mesmo que 
     ```
     FROM:all:txt_msg
-    ex -> Joao:all:Olá (joão todo mundo)
+    ex -> Joao:all:Olá (joão cumprimenta todo mundo)
     ```
 
 * Onde ficam as filas? : /dev/mqueue
