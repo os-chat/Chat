@@ -18,7 +18,7 @@ void enviar_mensagens() {
 }
 
 void handle_sigint(int sig) { 
-    printf("\nSe quiser finalizar o programa, digite \"exit\"\n"); 
+    printf("\nSe quiser finalizar o programa, digite: exit\n"); 
 } 
 
 int main(int argc, char const *argv[]) {
