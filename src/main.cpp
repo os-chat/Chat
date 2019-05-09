@@ -6,14 +6,14 @@
 #include <pthread.h>
 #include <signal.h>
 
-// gcc main.c -lpthread -lrt -o prog
+// g++ main.cpp -lpthread -lrt -o prog
 // ./prog nickname
 
 mqd_t user_queue;
 const char protocolo[] = "/chat-";
 char msg_enviada[524];
 
-void * receber_mensagens() {
+void *receber_mensagens(void *ptr) {
     char msg_recebida[524];
 
     while(1) {
@@ -76,7 +76,7 @@ int main(int argc, char const *argv[]) {
     }
 
     pthread_t thread_recebe;
-    pthread_create(&thread_recebe, NULL, (void *) receber_mensagens, NULL);
+    pthread_create(&thread_recebe, NULL, &receber_mensagens, NULL);
 
     while(1) {
         printf("Mensagem: ");
