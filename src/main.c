@@ -11,28 +11,30 @@
 
 mqd_t user_queue;
 const char protocolo[] = "/chat-";
-char msg[524];
+char msg_enviada[524];
 
 void * receber_mensagens() {
+    char msg_recebida[524];
+
     while(1) {
         int i;
-        if ((mq_receive (user_queue, msg, sizeof(msg), 0)) < 0) {
+        if ((mq_receive (user_queue, msg_recebida, sizeof(msg_recebida), 0)) < 0) {
             perror("mq_receive:");
             exit(1);
         }
-        for(i = 0; msg[i] != ':'; ++i)
-            printf("%c", msg[i]);
+        for(i = 0; msg_recebida[i] != ':'; ++i)
+            printf("%c", msg_recebida[i]);
         
-        printf("%c", msg[i]);
+        printf("%c", msg_recebida[i]);
         i++;
         
-        while(msg[i] != ':')
+        while(msg_recebida[i] != ':')
             i++;
 
         printf(" ");
         
-        while(msg[++i] != '\0')
-            printf("%c", msg[i]);
+        while(msg_recebida[++i] != '\0')
+            printf("%c", msg_recebida[i]);
     }
 }
 
@@ -45,21 +47,30 @@ void handle_sigint(int sig) {
 } 
 
 int main(int argc, char const *argv[]) {
+    char user_name[11];
+    strcpy(user_name, argv[1]);
+    char nome_negado[] = "all";
+
+    while(!strcmp(user_name, nome_negado)) {
+        printf("Nao é permitido usar o nome \'%s\', tente novamente com outro nome: ", user_name);
+        scanf(" %[^\n]", user_name);
+    }
+
     signal(SIGINT, handle_sigint);
     char user_queue_name[20];
     strcpy(user_queue_name, protocolo);
-    strcat(user_queue_name, argv[1]);
+    strcat(user_queue_name, user_name);
     struct mq_attr attr;
     char texto[501];
     char destinatario[11];
 
     attr.mq_maxmsg = 10;
-    attr.mq_msgsize = sizeof(msg);
+    attr.mq_msgsize = sizeof(msg_enviada);
     attr.mq_flags = 0;
 
     // Abre fila
     // O_RDWR = Open - Read and Write
-    if ((user_queue = mq_open(user_queue_name, O_RDWR|O_CREAT, 0666, &attr)) < 0) {
+    if ((user_queue = mq_open(user_queue_name, O_RDWR|O_CREAT, 0622, &attr)) < 0) {
         perror ("mq_open");
         exit (1);
     }
@@ -76,12 +87,12 @@ int main(int argc, char const *argv[]) {
         printf("Destinatario: ");
         scanf(" %[^\n]", destinatario);
 
-        strcpy(msg, argv[1]);
-        strcat(msg, ":");
-        strcat(msg, destinatario);
-        strcat(msg, ":");
-        strcat(msg, texto);
-        strcat(msg, "\n");
+        strcpy(msg_enviada, user_name);
+        strcat(msg_enviada, ":");
+        strcat(msg_enviada, destinatario);
+        strcat(msg_enviada, ":");
+        strcat(msg_enviada, texto);
+        strcat(msg_enviada, "\n");
         // msg = DE:PARA:TEXTO
 
         mqd_t other_queue;
@@ -95,7 +106,7 @@ int main(int argc, char const *argv[]) {
             printf("UNKNOWNUSER %s\n", destinatario);
         }
         else {
-            if (mq_send(other_queue, msg, sizeof(msg), 0) < 0) {
+            if (mq_send(other_queue, msg_enviada, sizeof(msg_enviada), 0) < 0) {
                 perror ("mq_send");
                 exit(1);
             }
@@ -104,7 +115,7 @@ int main(int argc, char const *argv[]) {
         }
     }   
 
-    mq_unlink(user_queue_name);
+    mq_close(user_queue);
 
     return 0;
 }
