@@ -2,3 +2,4 @@
 Chat/Chat
 Chat/*.o
 Chat/Makefile
+Chat/.qmake.stash
