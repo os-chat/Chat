@@ -3,3 +3,4 @@ Chat/Chat
 Chat/*.o
 Chat/Makefile
 Chat/.qmake.stash
+Chat/Chat.pro.user

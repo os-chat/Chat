@@ -10,7 +10,6 @@
 #include <mqueue.h>
 
 class Window : public QWidget {
-    //Q_OBJECT
 public:
     explicit Window(QWidget *parent = nullptr);
     mqd_t user_queue;

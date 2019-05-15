@@ -7,6 +7,10 @@
 #include <string.h>
 #include <signal.h>
 
+// qmake
+// make
+// ./Chat nickname
+
 typedef void * (*THREADFUNCPTR)(void *);
 const char protocolo[] = "/chat-";
 struct mq_attr attr;
@@ -81,6 +85,8 @@ int main(int argc, char *argv[]) {
         scanf(" %d", &opcao);
     }
 
+    system("clear");
+
     if(opcao == 1)
         main_terminal(user_name);
     else if(opcao == 2)
@@ -106,18 +112,20 @@ void main_terminal(char *user_name) {
     pthread_create(&thread_recebe, NULL, &receber_mensagens, NULL);
 
     while(1) {
-        char user[11];
         char destinatario[11];
         char msg_enviada[524];
-        scanf(" %[^\n]", msg_enviada);
-        if(strcmp(msg_enviada, "exit") == 0)
+        char texto[524];
+        scanf(" %[^\n]", texto);
+        if(strcmp(texto, "exit") == 0)
             break;
 
+        strcpy(msg_enviada, texto);
+
         char *token;
-        token = strtok(msg_enviada, ":");
-        strcpy(user, token);
+        token = strtok(texto, ":");
         token = strtok(NULL, ":");
         strcpy(destinatario, token);
+        strcat(msg_enviada, "\n");
         mqd_t other_queue;
 
         char other_queue_name[20];
