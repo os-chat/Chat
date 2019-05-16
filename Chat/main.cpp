@@ -6,7 +6,6 @@
 #include <sys/stat.h>
 #include <string.h>
 #include <signal.h>
-#include <dirent.h>
 
 // qmake
 // make
@@ -110,7 +109,7 @@ int main(int argc, char *argv[]) {
     else if(opcao == 2)
         main_interface(argc, argv, user_name);
     else
-        printf("\nEncerrando\n");
+        printf("Encerrando\n");
 
     return 0;
 }
@@ -183,7 +182,7 @@ int main_interface(int argc, char *argv[], char *user_name) {
     strcpy(title, "Chat - ");
     strcat(title, tela.user);
 
-    tela.resize(800, 400);
+    tela.resize(800, 550);
     tela.setWindowTitle(title);
     char user_queue_name[20];
     strcpy(user_queue_name, protocolo);

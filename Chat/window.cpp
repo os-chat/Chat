@@ -9,12 +9,16 @@ Window::Window(QWidget *parent) : QWidget(parent) {
     QGridLayout *enviadas = new QGridLayout();
     enviadas->setVerticalSpacing(15);
 
-    QLabel *label_msg_receb = new QLabel("Mensagens Recebidas:", this);
-    recebidas->addWidget(label_msg_receb, 2, 0, 1, 1);
-    label_msg_receb->setAlignment(Qt::AlignRight | Qt::AlignTop);
+    QLabel *label_msg_receb = new QLabel("Mensagens Recebidas", this);
+    recebidas->addWidget(label_msg_receb, 0, 0);
+    label_msg_receb->setAlignment(Qt::AlignCenter);
 
     campo_msg_recebida = new QListWidget(this);
-    recebidas->addWidget(campo_msg_recebida, 2, 1, 3, 1);
+    recebidas->addWidget(campo_msg_recebida, 1, 0);
+
+    QPushButton *clearMsgButton = new QPushButton("Limpar", this);
+    connect(clearMsgButton, &QPushButton::clicked, this, &Window::limpar_mensagens);
+    recebidas->addWidget(clearMsgButton, 2, 0);
 
     QLabel *label_dest = new QLabel("Destinatário:", this);
     enviadas->addWidget(label_dest, 0, 0, 1, 1);
@@ -36,14 +40,23 @@ Window::Window(QWidget *parent) : QWidget(parent) {
     connect(sendButton, &QPushButton::clicked, this, &Window::enviar_mensagem);
     enviadas->addWidget(sendButton, 3, 1);
 
-    QLabel *label_retornos = new QLabel("Erros:", this);
+    QLabel *label_retornos = new QLabel("Retornos:", this);
     enviadas->addWidget(label_retornos, 4, 0, 1, 1);
     label_retornos->setAlignment(Qt::AlignRight | Qt::AlignTop);
 
     campo_retornos = new QListWidget(this);
     enviadas->addWidget(campo_retornos, 4, 1, 1, 1);
 
+    QPushButton *listButton = new QPushButton("List", this);
+    connect(listButton, &QPushButton::clicked, this, &Window::list);
+    enviadas->addWidget(listButton, 5, 1);
+
+    QPushButton *clearButton = new QPushButton("Limpar", this);
+    connect(clearButton, &QPushButton::clicked, this, &Window::limpar_retornos);
+    enviadas->addWidget(clearButton, 6, 1);
+
     tela->addLayout(recebidas);
+    tela->addSpacing(10);
     tela->addLayout(enviadas);
     setLayout(tela);
 }
@@ -108,4 +121,29 @@ void * Window::receber_mensagem() {
         strcat(msg, token);
         campo_msg_recebida->addItem(msg);
     }
+}
+
+void Window::list() {
+    DIR *d;
+    struct dirent *dir;
+    d = opendir("/dev/mqueue");
+    if (d) {
+        while ((dir = readdir(d)) != NULL) {
+            char *token;
+            token = strtok(dir->d_name, "-");
+            if (strcmp(token, "chat") == 0) {
+                token = strtok(NULL, "-");
+                campo_retornos->addItem(token);
+            }
+        }
+        closedir(d);
+    }
+}
+
+void Window::limpar_retornos() {
+    campo_retornos->clear();
+}
+
+void Window::limpar_mensagens() {
+    campo_msg_recebida->clear();
 }

@@ -8,6 +8,7 @@
 #include <QCoreApplication>
 #include <pthread.h>
 #include <mqueue.h>
+#include <dirent.h>
 
 class Window : public QWidget {
 public:
@@ -33,6 +34,9 @@ public slots:
 
 private slots:
     void enviar_mensagem();
+    void list();
+    void limpar_retornos();
+    void limpar_mensagens();
 };
 
 #endif // WINDOW_H
