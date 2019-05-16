@@ -6,6 +6,7 @@
 #include <sys/stat.h>
 #include <string.h>
 #include <signal.h>
+#include <dirent.h>
 
 // qmake
 // make
@@ -15,6 +16,23 @@ typedef void * (*THREADFUNCPTR)(void *);
 const char protocolo[] = "/chat-";
 struct mq_attr attr;
 mqd_t user_queue;
+
+void list() {
+    DIR *d;
+    struct dirent *dir;
+    d = opendir("/dev/mqueue");
+    if (d) {
+        while ((dir = readdir(d)) != NULL) {
+            char *token;
+            token = strtok(dir->d_name, "-");
+            if (strcmp(token, "chat") == 0) {
+                token = strtok(NULL, "-");
+                printf("%s\n", token);
+            }
+        }
+        closedir(d);
+    }
+}
 
 void *receber_mensagens(void *ptr) {
     char msg_recebida[524];
@@ -116,8 +134,14 @@ void main_terminal(char *user_name) {
         char msg_enviada[524];
         char texto[524];
         scanf(" %[^\n]", texto);
+
         if(strcmp(texto, "exit") == 0)
             break;
+
+        if(strcmp(texto, "list") == 0) {
+            list();
+            continue;
+        }
 
         strcpy(msg_enviada, texto);
 
