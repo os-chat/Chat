@@ -48,3 +48,13 @@
 max_msg_len = 500 chars
 
 max_name_len = 10 chars
+
+## Executando o Programa
+
+No terminal, vá até a pasta do projeto e digite os seguintes comandos:
+```bash
+    $ cd Chat/
+    $ qmake
+    $ make
+    $ ./Chat nickname # substitua 'nickname' por um nome de preferência
+```
