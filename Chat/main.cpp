@@ -1,3 +1,7 @@
+// qmake
+// make
+// ./Chat nickname
+
 #include <QApplication>
 #include <QWidget>
 #include "window.h"
@@ -6,17 +10,17 @@
 #include <sys/stat.h>
 #include <string.h>
 #include <signal.h>
+#include <vector>
 
-// qmake
-// make
-// ./Chat nickname
+using namespace std;
 
 typedef void * (*THREADFUNCPTR)(void *);
 const char protocolo[] = "/chat-";
 struct mq_attr attr;
 mqd_t user_queue;
 
-void list() {
+vector<char*> command_list() {
+    vector<char*> users;
     DIR *d;
     struct dirent *dir;
     d = opendir("/dev/mqueue");
@@ -26,35 +30,33 @@ void list() {
             token = strtok(dir->d_name, "-");
             if (strcmp(token, "chat") == 0) {
                 token = strtok(NULL, "-");
-                printf("%s\n", token);
+                users.push_back(token);
             }
         }
         closedir(d);
     }
+
+    return users;
 }
 
 void *receber_mensagens(void *ptr) {
-    char msg_recebida[524];
-
+    char msg_recebida[524], *user, *dest, msg[524];
     while(1) {
-        int i;
+        strcpy(msg, "");
         if ((mq_receive (user_queue, msg_recebida, sizeof(msg_recebida), 0)) < 0) {
             perror("mq_receive:");
             exit(1);
         }
-        for(i = 0; msg_recebida[i] != ':'; ++i)
-            printf("%c", msg_recebida[i]);
+        user = strtok(msg_recebida, ":");
+        dest = strtok(NULL, ":");
 
-        printf("%c", msg_recebida[i]);
-        i++;
+        if(strcmp(dest, "all") == 0)
+            strcpy(msg, "Broadcast de ");
 
-        while(msg_recebida[i] != ':')
-            i++;
-
-        printf(" ");
-
-        while(msg_recebida[++i] != '\0')
-            printf("%c", msg_recebida[i]);
+        strcat(msg, user);
+        strcat(msg, ": ");
+        strcat(msg, strtok(NULL, ":"));
+        printf("%s", msg);
     }
 }
 
@@ -80,12 +82,12 @@ int main(int argc, char *argv[]) {
     }
 
     printf("-----------------------");
-    for(int i = 0; i < strlen(user_name); ++i)
+    for(size_t i = 0; i < strlen(user_name); ++i)
         printf("-");
     printf("\n");
     printf("| Bem-vindo ao Chat, %s |\n", user_name);
     printf("-----------------------");
-    for(int i = 0; i < strlen(user_name); ++i)
+    for(size_t i = 0; i < strlen(user_name); ++i)
         printf("-");
     printf("\n\n");
 
@@ -138,7 +140,10 @@ void main_terminal(char *user_name) {
             break;
 
         if(strcmp(texto, "list") == 0) {
-            list();
+            printf("\nLista de Usuários:\n");
+            vector<char*> users = command_list();
+            for(auto u : users)
+                printf("%s\n", u);
             continue;
         }
 
@@ -152,20 +157,39 @@ void main_terminal(char *user_name) {
         mqd_t other_queue;
 
         char other_queue_name[20];
-        strcpy(other_queue_name, protocolo);
-        strcat(other_queue_name, destinatario);
 
-        // O_WRONLY = Open - Write Only
-        if((other_queue = mq_open (other_queue_name, O_WRONLY)) < 0) {
-            printf("UNKNOWNUSER %s\n", destinatario);
+        if(strcmp(destinatario, "all") == 0) { // se o destinatário for all
+            vector<char*> users = command_list();
+            for(auto u : users) {
+                if(strcmp(user_name, u)) {
+                    strcpy(other_queue_name, protocolo);
+                    strcat(other_queue_name, u);
+                    other_queue = mq_open (other_queue_name, O_WRONLY);
+                    if (mq_send(other_queue, msg_enviada, sizeof(msg_enviada), 0) < 0) {
+                        perror ("mq_send");
+                        exit(1);
+                    }
+
+                    mq_close(other_queue);
+                }
+            }
         }
         else {
-            if (mq_send(other_queue, msg_enviada, sizeof(msg_enviada), 0) < 0) {
-                perror ("mq_send");
-                exit(1);
-            }
+            strcpy(other_queue_name, protocolo);
+            strcat(other_queue_name, destinatario);
 
-            mq_close(other_queue);
+            // O_WRONLY = Open - Write Only
+            if((other_queue = mq_open (other_queue_name, O_WRONLY)) < 0) {
+                printf("UNKNOWNUSER %s\n", destinatario);
+            }
+            else {
+                if (mq_send(other_queue, msg_enviada, sizeof(msg_enviada), 0) < 0) {
+                    perror ("mq_send");
+                    exit(1);
+                }
+
+                mq_close(other_queue);
+            }
         }
     }
 

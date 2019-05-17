@@ -128,6 +128,7 @@ void Window::list() {
     struct dirent *dir;
     d = opendir("/dev/mqueue");
     if (d) {
+        campo_retornos->addItem("Lista de Usuários:");
         while ((dir = readdir(d)) != NULL) {
             char *token;
             token = strtok(dir->d_name, "-");
