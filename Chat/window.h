@@ -9,6 +9,9 @@
 #include <pthread.h>
 #include <mqueue.h>
 #include <dirent.h>
+#include <vector>
+
+using namespace std;
 
 class Window : public QWidget {
 public:
@@ -34,7 +37,8 @@ public slots:
 
 private slots:
     void enviar_mensagem();
-    void list();
+    vector<char*> command_list();
+    void show_users();
     void limpar_retornos();
     void limpar_mensagens();
 };

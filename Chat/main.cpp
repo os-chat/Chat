@@ -3,16 +3,11 @@
 // ./Chat nickname
 
 #include <QApplication>
-#include <QWidget>
 #include "window.h"
 #include <stdio.h>
 #include <stdlib.h>
 #include <sys/stat.h>
-#include <string.h>
 #include <signal.h>
-#include <vector>
-
-using namespace std;
 
 typedef void * (*THREADFUNCPTR)(void *);
 const char protocolo[] = "/chat-";

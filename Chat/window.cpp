@@ -48,7 +48,7 @@ Window::Window(QWidget *parent) : QWidget(parent) {
     enviadas->addWidget(campo_retornos, 4, 1, 1, 1);
 
     QPushButton *listButton = new QPushButton("List", this);
-    connect(listButton, &QPushButton::clicked, this, &Window::list);
+    connect(listButton, &QPushButton::clicked, this, &Window::show_users);
     enviadas->addWidget(listButton, 5, 1);
 
     QPushButton *clearButton = new QPushButton("Limpar", this);
@@ -62,16 +62,21 @@ Window::Window(QWidget *parent) : QWidget(parent) {
 }
 
 void Window::enviar_mensagem() {
-    char destinatario[11], mensagem[501];
+    char destinatario[11], mensagem[501], protocolo[] = "/chat-";
+
     QByteArray ba = campo_env_msg->toPlainText().toLocal8Bit();
     strcpy(mensagem, ba.data());
     ba = campo_dest->text().toLocal8Bit();
     strcpy(destinatario, ba.data());
 
-    if(!strcmp(mensagem, "exit") && !strlen(destinatario))
+    if(!strcmp(mensagem, "exit") && !strlen(destinatario)) {
         this->close();
+        return;
+    }
 
-    char msg_enviada[524];
+    char msg_enviada[524], other_queue_name[20];
+    mqd_t other_queue;
+
     strcpy(msg_enviada, user);
     strcat(msg_enviada, ":");
     strcat(msg_enviada, destinatario);
@@ -79,25 +84,41 @@ void Window::enviar_mensagem() {
     strcat(msg_enviada, mensagem);
     strcat(msg_enviada, "\n");
 
-    mqd_t other_queue;
-    char other_queue_name[20];
-    strcpy(other_queue_name, "/chat-");
-    strcat(other_queue_name, destinatario);
+    if(strcmp(destinatario, "all") == 0) { // se o destinatário for all
+        vector<char*> users = command_list();
+        for(auto u : users) {
+            if(strcmp(user, u)) {
+                strcpy(other_queue_name, protocolo);
+                strcat(other_queue_name, u);
+                other_queue = mq_open (other_queue_name, O_WRONLY);
+                if (mq_send(other_queue, msg_enviada, sizeof(msg_enviada), 0) < 0) {
+                    perror ("mq_send");
+                    exit(1);
+                }
 
-    // O_WRONLY = Open - Write Only
-    if((other_queue = mq_open (other_queue_name, O_WRONLY)) < 0) {
-        char unk_user[25];
-        strcpy(unk_user, "UNKNOWNUSER ");
-        strcat(unk_user, destinatario);
-        campo_retornos->addItem(unk_user);
+                mq_close(other_queue);
+            }
+        }
     }
     else {
-        if (mq_send(other_queue, msg_enviada, sizeof(msg_enviada), 0) < 0) {
-            perror ("mq_send");
-            exit(1);
-        }
+        strcpy(other_queue_name, protocolo);
+        strcat(other_queue_name, destinatario);
 
-        mq_close(other_queue);
+        // O_WRONLY = Open - Write Only
+        if((other_queue = mq_open (other_queue_name, O_WRONLY)) < 0) {
+            char unk_user[25];
+            strcpy(unk_user, "UNKNOWNUSER ");
+            strcat(unk_user, destinatario);
+            campo_retornos->addItem(unk_user);
+        }
+        else {
+            if (mq_send(other_queue, msg_enviada, sizeof(msg_enviada), 0) < 0) {
+                perror ("mq_send");
+                exit(1);
+            }
+
+            mq_close(other_queue);
+        }
     }
 
     campo_dest->setText("");
@@ -105,40 +126,51 @@ void Window::enviar_mensagem() {
 }
 
 void * Window::receber_mensagem() {
-    char msg_recebida[524];
-    char msg[524];
+    char msg_recebida[524], *user, *dest, msg[524];
     while(1) {
-        char *token;
+        strcpy(msg, "");
         if ((mq_receive (user_queue, msg_recebida, sizeof(msg_recebida), 0)) < 0) {
             perror("mq_receive:");
             exit(1);
         }
-        token = strtok(msg_recebida, ":");
-        strcpy(msg, token);
+        user = strtok(msg_recebida, ":");
+        dest = strtok(NULL, ":");
+
+        if(strcmp(dest, "all") == 0)
+            strcpy(msg, "Broadcast de ");
+
+        strcat(msg, user);
         strcat(msg, ": ");
-        token = strtok(NULL, ":");
-        token = strtok(NULL, ":");
-        strcat(msg, token);
+        strcat(msg, strtok(NULL, ":"));
         campo_msg_recebida->addItem(msg);
     }
 }
 
-void Window::list() {
+vector<char*> Window::command_list() {
+    vector<char*> users;
     DIR *d;
     struct dirent *dir;
     d = opendir("/dev/mqueue");
     if (d) {
-        campo_retornos->addItem("Lista de Usuários:");
         while ((dir = readdir(d)) != NULL) {
             char *token;
             token = strtok(dir->d_name, "-");
             if (strcmp(token, "chat") == 0) {
                 token = strtok(NULL, "-");
-                campo_retornos->addItem(token);
+                users.push_back(token);
             }
         }
         closedir(d);
     }
+
+    return users;
+}
+
+void Window::show_users() {
+    vector<char*> users = command_list();
+    campo_retornos->addItem("Lista de Usuários:");
+    for(auto u : users)
+        campo_retornos->addItem(u);
 }
 
 void Window::limpar_retornos() {
