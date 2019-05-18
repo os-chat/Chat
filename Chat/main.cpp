@@ -56,7 +56,7 @@ void *receber_mensagens(void *ptr) {
 }
 
 void handle_sigint(int sig) {
-    printf("\nSe quiser finalizar o programa, digite no campo de mensagens: exit\n");
+    printf("\nSe quiser finalizar o programa, digite: exit\n");
 }
 
 void main_terminal(char *user_name);
@@ -79,27 +79,26 @@ int main(int argc, char *argv[]) {
     printf("-----------------------");
     for(size_t i = 0; i < strlen(user_name); ++i)
         printf("-");
-    printf("\n");
-    printf("| Bem-vindo ao Chat, %s |\n", user_name);
+
+    printf("\n| Bem-vindo ao Chat, %s |\n", user_name);
     printf("-----------------------");
     for(size_t i = 0; i < strlen(user_name); ++i)
         printf("-");
-    printf("\n\n");
 
-    printf("Como deseja usar o Chat?\n");
+    printf("\n\nComo deseja usar o Chat?\n");
     printf("1. Terminal\n");
     printf("2. Interface Gráfica\n");
     printf("0. Sair\n");
 
     printf("\nOpção: ");
-    scanf(" %d", &opcao);
+    scanf(" %d ", &opcao);
 
     while(opcao < 0 || opcao > 2) {
         printf("Opção deve ser 0, 1 ou 2, tente novamente: ");
         scanf(" %d", &opcao);
     }
 
-    system("clear");
+    //system("clear");
 
     if(opcao == 1)
         main_terminal(user_name);
@@ -126,15 +125,17 @@ void main_terminal(char *user_name) {
     pthread_create(&thread_recebe, NULL, &receber_mensagens, NULL);
 
     while(1) {
-        char destinatario[11];
+        char user[11], destinatario[11], texto[501];
         char msg_enviada[524];
-        char texto[524];
-        scanf(" %[^\n]", texto);
+        strcpy(user, "");
+        strcpy(destinatario, "");
+        strcpy(texto, "");
+        scanf(" %[^:\n]:%[^:]:%500[^\n]", user, destinatario, texto);
 
-        if(strcmp(texto, "exit") == 0)
+        if(!strcmp(user, "exit"))
             break;
 
-        if(strcmp(texto, "list") == 0) {
+        if(!strcmp(user, "list")) {
             printf("\nLista de Usuários:\n");
             vector<char*> users = command_list();
             for(auto u : users)
@@ -142,13 +143,18 @@ void main_terminal(char *user_name) {
             continue;
         }
 
-        strcpy(msg_enviada, texto);
+        if(!strlen(destinatario) || !strlen(texto)) {
+            printf("Formato inválido, tente novamente.\n");
+            continue;
+        }
 
-        char *token;
-        token = strtok(texto, ":");
-        token = strtok(NULL, ":");
-        strcpy(destinatario, token);
+        strcpy(msg_enviada, user);
+        strcat(msg_enviada, ":");
+        strcat(msg_enviada, destinatario);
+        strcat(msg_enviada, ":");
+        strcat(msg_enviada, texto);
         strcat(msg_enviada, "\n");
+
         mqd_t other_queue;
 
         char other_queue_name[20];

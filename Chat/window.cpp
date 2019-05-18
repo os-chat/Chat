@@ -74,6 +74,11 @@ void Window::enviar_mensagem() {
         return;
     }
 
+    if(!strlen(destinatario)) {
+        campo_retornos->addItem("Campo 'destinatario' só pode ficar vazio se a mensagem for 'exit' (comando para fechar o Chat)");
+        return;
+    }
+
     char msg_enviada[524], other_queue_name[20];
     mqd_t other_queue;
 
