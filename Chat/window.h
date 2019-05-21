@@ -1,15 +1,15 @@
 #ifndef WINDOW_H
 #define WINDOW_H
 
+#include "common.h"
 #include <QWidget>
 #include <QListWidget>
 #include <QTextEdit>
 #include <QLineEdit>
 #include <QCoreApplication>
-#include <pthread.h>
-#include <mqueue.h>
-#include <dirent.h>
-#include <vector>
+#include "receive_msg.h"
+#include "send_msg.h"
+#include "cmd_list.h"
 
 using namespace std;
 
@@ -19,7 +19,7 @@ public:
     mqd_t user_queue;
     char user[11];
     static void * startThread(void* context) {
-        ((Window*)context)->receber_mensagem();
+        ((Window*)context)->receive_msg();
     }
     void start() {
         pthread_t thread_id;
@@ -33,11 +33,11 @@ private:
     QListWidget *campo_retornos;
 
 public slots:
-    void * receber_mensagem();
+    void * receive_msg();
 
 private slots:
-    void enviar_mensagem();
-    vector<char*> command_list();
+    void send_msg();
+    vector<char*> cmd_list();
     void show_users();
     void limpar_retornos();
     void limpar_mensagens();

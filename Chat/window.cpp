@@ -37,7 +37,7 @@ Window::Window(QWidget *parent) : QWidget(parent) {
     campo_env_msg->setText("");
 
     QPushButton *sendButton = new QPushButton("Enviar", this);
-    connect(sendButton, &QPushButton::clicked, this, &Window::enviar_mensagem);
+    connect(sendButton, &QPushButton::clicked, this, &Window::send_msg);
     enviadas->addWidget(sendButton, 3, 1);
 
     QLabel *label_retornos = new QLabel("Retornos:", this);
@@ -61,8 +61,8 @@ Window::Window(QWidget *parent) : QWidget(parent) {
     setLayout(tela);
 }
 
-void Window::enviar_mensagem() {
-    char destinatario[11], mensagem[501], protocolo[] = "/chat-";
+void Window::send_msg() {
+    char destinatario[11], mensagem[501], protocol[] = "/chat-";
 
     QByteArray ba = campo_env_msg->toPlainText().toLocal8Bit();
     strcpy(mensagem, ba.data());
@@ -90,10 +90,10 @@ void Window::enviar_mensagem() {
     strcat(msg_enviada, "\n");
 
     if(strcmp(destinatario, "all") == 0) { // se o destinatário for all
-        vector<char*> users = command_list();
+        vector<char*> users = cmd_list();
         for(auto u : users) {
             if(strcmp(user, u)) {
-                strcpy(other_queue_name, protocolo);
+                strcpy(other_queue_name, protocol);
                 strcat(other_queue_name, u);
                 other_queue = mq_open (other_queue_name, O_WRONLY);
                 if (mq_send(other_queue, msg_enviada, sizeof(msg_enviada), 0) < 0) {
@@ -106,7 +106,7 @@ void Window::enviar_mensagem() {
         }
     }
     else {
-        strcpy(other_queue_name, protocolo);
+        strcpy(other_queue_name, protocol);
         strcat(other_queue_name, destinatario);
 
         // O_WRONLY = Open - Write Only
@@ -130,7 +130,7 @@ void Window::enviar_mensagem() {
     campo_env_msg->setText("");
 }
 
-void * Window::receber_mensagem() {
+void * Window::receive_msg() {
     char msg_recebida[524], *user, *dest, msg[524];
     while(1) {
         strcpy(msg, "");
@@ -151,7 +151,7 @@ void * Window::receber_mensagem() {
     }
 }
 
-vector<char*> Window::command_list() {
+vector<char*> Window::cmd_list() {
     vector<char*> users;
     DIR *d;
     struct dirent *dir;
@@ -172,7 +172,7 @@ vector<char*> Window::command_list() {
 }
 
 void Window::show_users() {
-    vector<char*> users = command_list();
+    vector<char*> users = cmd_list();
     campo_retornos->addItem("Lista de Usuários:");
     for(auto u : users)
         campo_retornos->addItem(u);
