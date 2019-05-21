@@ -1,18 +1,20 @@
-// qmake
-// make
-// ./Chat nickname
-
 #include <QApplication>
 #include "window.h"
 #include <stdio.h>
 #include <stdlib.h>
 #include <sys/stat.h>
 #include <signal.h>
+#include <queue>
+#include <semaphore.h>
+
+using namespace std;
 
 typedef void * (*THREADFUNCPTR)(void *);
 const char protocolo[] = "/chat-";
 struct mq_attr attr;
 mqd_t user_queue;
+queue<char*> fila_msg_enviadas;
+sem_t S;
 
 vector<char*> command_list() {
     vector<char*> users;
@@ -55,6 +57,55 @@ void *receber_mensagens(void *ptr) {
     }
 }
 
+void tentativa_envio(char* dest_queue) {
+
+}
+
+void *enviar_mensagens(void *ptr) {
+    while(1) {
+        sem_wait(&S);
+
+        mqd_t other_queue;
+        char other_queue_name[20];
+        char *user_name, *destinatario, msg_enviada[524], token[524];
+        strcpy(msg_enviada, fila_msg_enviadas.front());
+        strcpy(token, fila_msg_enviadas.front());
+        fila_msg_enviadas.pop();
+
+        user_name = strtok(token, ":");
+        destinatario = strtok(NULL, ":");
+
+        if(strcmp(destinatario, "all") == 0) { // se o destinatário for all
+            vector<char*> users = command_list();
+            for(auto u : users) {
+                if(strcmp(user_name, u)) {
+                    strcpy(other_queue_name, protocolo);
+                    strcat(other_queue_name, u);
+                    other_queue = mq_open (other_queue_name, O_WRONLY|O_NONBLOCK);
+                    if (mq_send(other_queue, msg_enviada, sizeof(msg_enviada), 0) < 0) {
+                        perror ("mq_send");
+                        exit(1);
+                    }
+
+                    mq_close(other_queue);
+                }
+            }
+        }
+        else {
+            strcpy(other_queue_name, protocolo);
+            strcat(other_queue_name, destinatario);
+
+            // O_WRONLY = Open - Write Only
+            if((other_queue = mq_open (other_queue_name, O_WRONLY|O_NONBLOCK)) < 0) {
+                printf("UNKNOWNUSER %s\n", destinatario);
+            }
+            else {
+                tentativa_envio(other_queue_name);
+            }
+        }
+    }
+}
+
 void handle_sigint(int sig) {
     printf("\nSe quiser finalizar o programa, digite: exit\n");
 }
@@ -63,6 +114,7 @@ void main_terminal(char *user_name);
 int main_interface(int argc, char *argv[], char *user_name);
 
 int main(int argc, char *argv[]) {
+    sem_init(&S, 0, 0);
     attr.mq_maxmsg = 10;
     attr.mq_msgsize = sizeof(char)*524;
     attr.mq_flags = 0;
@@ -98,7 +150,7 @@ int main(int argc, char *argv[]) {
         scanf(" %d", &opcao);
     }
 
-    //system("clear");
+    system("clear");
 
     if(opcao == 1)
         main_terminal(user_name);
@@ -121,8 +173,9 @@ void main_terminal(char *user_name) {
         exit (1);
     }
 
-    pthread_t thread_recebe;
+    pthread_t thread_recebe, thread_envia;
     pthread_create(&thread_recebe, NULL, &receber_mensagens, NULL);
+    pthread_create(&thread_envia, NULL, &enviar_mensagens, NULL);
 
     while(1) {
         char user[11], destinatario[11], texto[501];
@@ -155,46 +208,12 @@ void main_terminal(char *user_name) {
         strcat(msg_enviada, texto);
         strcat(msg_enviada, "\n");
 
-        mqd_t other_queue;
-
-        char other_queue_name[20];
-
-        if(strcmp(destinatario, "all") == 0) { // se o destinatário for all
-            vector<char*> users = command_list();
-            for(auto u : users) {
-                if(strcmp(user_name, u)) {
-                    strcpy(other_queue_name, protocolo);
-                    strcat(other_queue_name, u);
-                    other_queue = mq_open (other_queue_name, O_WRONLY);
-                    if (mq_send(other_queue, msg_enviada, sizeof(msg_enviada), 0) < 0) {
-                        perror ("mq_send");
-                        exit(1);
-                    }
-
-                    mq_close(other_queue);
-                }
-            }
-        }
-        else {
-            strcpy(other_queue_name, protocolo);
-            strcat(other_queue_name, destinatario);
-
-            // O_WRONLY = Open - Write Only
-            if((other_queue = mq_open (other_queue_name, O_WRONLY)) < 0) {
-                printf("UNKNOWNUSER %s\n", destinatario);
-            }
-            else {
-                if (mq_send(other_queue, msg_enviada, sizeof(msg_enviada), 0) < 0) {
-                    perror ("mq_send");
-                    exit(1);
-                }
-
-                mq_close(other_queue);
-            }
-        }
+        fila_msg_enviadas.push(msg_enviada);
+        sem_post(&S);
     }
 
     mq_close(user_queue);
+    mq_unlink(user_queue_name);
 }
 
 int main_interface(int argc, char *argv[], char *user_name) {
