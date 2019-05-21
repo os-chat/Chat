@@ -91,7 +91,7 @@ int main(int argc, char *argv[]) {
     printf("0. Sair\n");
 
     printf("\nOpção: ");
-    scanf(" %d ", &opcao);
+    scanf(" %d", &opcao);
 
     while(opcao < 0 || opcao > 2) {
         printf("Opção deve ser 0, 1 ou 2, tente novamente: ");
