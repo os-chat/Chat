@@ -6,6 +6,7 @@
 #include <signal.h>
 #include <queue>
 #include <semaphore.h>
+#include <unistd.h>
 
 using namespace std;
 
@@ -57,10 +58,6 @@ void *receber_mensagens(void *ptr) {
     }
 }
 
-void tentativa_envio(char* dest_queue) {
-
-}
-
 void *enviar_mensagens(void *ptr) {
     while(1) {
         sem_wait(&S);
@@ -68,9 +65,8 @@ void *enviar_mensagens(void *ptr) {
         mqd_t other_queue;
         char other_queue_name[20];
         char *user_name, *destinatario, msg_enviada[524], token[524];
-        strcpy(msg_enviada, fila_msg_enviadas.front());
         strcpy(token, fila_msg_enviadas.front());
-        fila_msg_enviadas.pop();
+        strcpy(msg_enviada, fila_msg_enviadas.front());
 
         user_name = strtok(token, ":");
         destinatario = strtok(NULL, ":");
@@ -100,7 +96,21 @@ void *enviar_mensagens(void *ptr) {
                 printf("UNKNOWNUSER %s\n", destinatario);
             }
             else {
-                tentativa_envio(other_queue_name);
+                int tentativas = 0;
+                while(tentativas <= 3) {
+                    if (mq_send(other_queue, msg_enviada, sizeof(msg_enviada), 0) < 0 && errno == EAGAIN) {
+                        tentativas++;
+                        if(tentativas == 4)
+                            break;
+                        sleep(5*tentativas);
+                    }
+                    else
+                        break;
+                }
+                if(tentativas > 3)
+                    printf("ERRO %s", msg_enviada);
+
+                mq_close(other_queue);
             }
         }
     }
@@ -213,7 +223,7 @@ void main_terminal(char *user_name) {
     }
 
     mq_close(user_queue);
-    mq_unlink(user_queue_name);
+    //mq_unlink(user_queue_name);
 }
 
 int main_interface(int argc, char *argv[], char *user_name) {
@@ -240,3 +250,7 @@ int main_interface(int argc, char *argv[], char *user_name) {
 
     return app.exec();
 }
+
+
+
+//   0   5s    1    10s    2   15s    3
