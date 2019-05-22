@@ -14,6 +14,12 @@
 #include <queue>
 #include <semaphore.h>
 #include <string.h>
+#include <cstdio>
+#include <iostream>
+#include <memory>
+#include <stdexcept>
+#include <string>
+#include <array>
 
 using namespace std;
 
@@ -23,6 +29,7 @@ extern mqd_t user_queue;
 extern queue<char*> fila_msg_enviadas;
 extern sem_t S;
 
+string exec(const char* cmd);
 void handle_sigint(int sig);
 
 #endif

@@ -1,7 +1,8 @@
 #include "send_msg.h"
 void *send_msg(void *ptr)
 {
-    while(1) {
+    while (1)
+    {
         sem_wait(&S);
 
         mqd_t other_queue;
@@ -13,15 +14,19 @@ void *send_msg(void *ptr)
         user_name = strtok(token, ":");
         destinatario = strtok(NULL, ":");
 
-        if(strcmp(destinatario, "all") == 0) { // se o destinatário for all
-            vector<char*> users = cmd_list();
-            for(auto u : users) {
-                if(strcmp(user_name, u)) {
+        if (strcmp(destinatario, "all") == 0)
+        { // se o destinatário for all
+            vector<char *> users = cmd_list();
+            for (auto u : users)
+            {
+                if (strcmp(user_name, u))
+                {
                     strcpy(other_queue_name, protocol);
                     strcat(other_queue_name, u);
-                    other_queue = mq_open (other_queue_name, O_WRONLY|O_NONBLOCK);
-                    if (mq_send(other_queue, msg_enviada, sizeof(msg_enviada), 0) < 0) {
-                        perror ("mq_send");
+                    other_queue = mq_open(other_queue_name, O_WRONLY | O_NONBLOCK);
+                    if (mq_send(other_queue, msg_enviada, sizeof(msg_enviada), 0) < 0)
+                    {
+                        perror("mq_send");
                         exit(1);
                     }
 
@@ -29,27 +34,32 @@ void *send_msg(void *ptr)
                 }
             }
         }
-        else {
+        else
+        {
             strcpy(other_queue_name, protocol);
             strcat(other_queue_name, destinatario);
 
             // O_WRONLY = Open - Write Only
-            if((other_queue = mq_open (other_queue_name, O_WRONLY|O_NONBLOCK)) < 0) {
+            if ((other_queue = mq_open(other_queue_name, O_WRONLY | O_NONBLOCK)) < 0)
+            {
                 printf("UNKNOWNUSER %s\n", destinatario);
             }
-            else {
+            else
+            {
                 int tentativas = 0;
-                while(tentativas <= 3) {
-                    if (mq_send(other_queue, msg_enviada, sizeof(msg_enviada), 0) < 0 && errno == EAGAIN) {
+                while (tentativas <= 3)
+                {
+                    if (mq_send(other_queue, msg_enviada, sizeof(msg_enviada), 0) < 0 && errno == EAGAIN)
+                    {
                         tentativas++;
-                        if(tentativas == 4)
+                        if (tentativas == 4)
                             break;
-                        sleep(5*tentativas);
+                        sleep(5 * tentativas);
                     }
                     else
                         break;
                 }
-                if(tentativas > 3)
+                if (tentativas > 3)
                     printf("ERRO %s", msg_enviada);
 
                 mq_close(other_queue);

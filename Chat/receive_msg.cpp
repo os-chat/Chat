@@ -17,6 +17,7 @@ void *receive_msg(void *ptr) {
         strcat(msg, user);
         strcat(msg, ": ");
         strcat(msg, strtok(NULL, ":"));
-        printf("%s", msg);
+        printf("%s> ", msg);
+        fflush(stdout);
     }
 }

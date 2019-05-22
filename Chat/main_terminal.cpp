@@ -6,10 +6,14 @@ void main_terminal(char *user_name) {
     strcpy(user_queue_name, protocol);
     strcat(user_queue_name, user_name);
 
+    string current_umask = "umask "+exec("umask");
+    system("umask u=rw,g=w,o=w");
     if ((user_queue = mq_open(user_queue_name, O_RDWR|O_CREAT, 0622, &attr)) < 0) {
         perror ("mq_open");
+        system(current_umask.c_str());
         exit (1);
     }
+    system(current_umask.c_str());
 
     pthread_t thread_recebe, thread_envia;
     pthread_create(&thread_recebe, NULL, &receive_msg, NULL);
@@ -21,6 +25,8 @@ void main_terminal(char *user_name) {
         strcpy(user, "");
         strcpy(destinatario, "");
         strcpy(texto, "");
+        printf("> ");
+        
         scanf(" %[^:\n]:%[^:]:%500[^\n]", user, destinatario, texto);
 
         if(!strcmp(user, "exit"))
@@ -29,12 +35,13 @@ void main_terminal(char *user_name) {
         if(!strcmp(user, "list")) {
             printf("\nLista de Usuários:\n");
             vector<char*> users = cmd_list();
-            for(auto u : users)
-                printf("%s\n", u);
+            for(int i = 0; i < users.size(); ++i)
+                printf("%d - %s\n", i+1, users[i]);
+            printf("\n");
             continue;
         }
 
-        if(!strlen(destinatario) || !strlen(texto)) {
+        if(!strlen(destinatario) || !strlen(texto) || !strlen(user)) {
             printf("Formato inválido, tente novamente.\n");
             continue;
         }
