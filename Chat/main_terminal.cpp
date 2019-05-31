@@ -6,7 +6,6 @@ void main_terminal(char *user_name)
     char user_queue_name[20];
     strcpy(user_queue_name, protocol);
     strcat(user_queue_name, user_name);
-    vector<string> msgs_history;
     string current_umask = "umask " + exec("umask");
     system("umask u=rw,g=w,o=w");
     if ((user_queue = mq_open(user_queue_name, O_RDWR | O_CREAT, 0622, &attr)) < 0)
@@ -30,9 +29,8 @@ void main_terminal(char *user_name)
         strcpy(texto, "");
         printf("> ");
 
-        scanf(" %[^:\n]:%[^:]:%500[^\n]", user, destinatario, texto);
-        string msg = string(user) + string(destinatario) + string(texto);
-        msgs_history.push_back(msg);
+        scanf(" %10[^:\n]:%10[^:]:%500[^\n]", user, destinatario, texto);
+
         if (!strcmp(user, "exit"))
         {
             break;

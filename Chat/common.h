@@ -20,6 +20,7 @@
 #include <stdexcept>
 #include <string>
 #include <array>
+#include <ncurses.h>
 
 using namespace std;
 

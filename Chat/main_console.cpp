@@ -1,10 +1,4 @@
-#include <ncurses.h>
-#include <string.h>
-#include <string>
-#include <vector>
-#include <iostream>
-
-using namespace std;
+#include "main_console.h"
 bool iequals(const string &a, const string &b)
 {
     return std::equal(a.begin(), a.end(),
@@ -13,35 +7,36 @@ bool iequals(const string &a, const string &b)
                           return tolower(a) == tolower(b);
                       });
 }
-
-void input(string x, int &row){
-    char user[11], destinatario[11], texto[501];
-    char msg_enviada[524];
-    strcpy(user, "");
-    strcpy(destinatario, "");
-    strcpy(texto, "");
-    sscanf(x.c_str(), " %10[^:\n]:%10[^:]:%500[^\n]", user, destinatario, texto);
-
-    if (!strlen(destinatario) || !strlen(texto) || !strlen(user))
-    {
-        printw("Formato inválido, tente novamente.\n> ");
-        row++;
-    }
-}
-int main()
+void main_console(char *user_name)
 {
     int ch;
 
-    /* Curses Initialisations */
+    signal(SIGINT, handle_sigint);
+    char user_queue_name[20];
+    strcpy(user_queue_name, protocol);
+    strcat(user_queue_name, user_name);
+    string current_umask = "umask " + exec("umask");
+    system("umask u=rw,g=w,o=w");
+    if ((user_queue = mq_open(user_queue_name, O_RDWR | O_CREAT, 0622, &attr)) < 0)
+    {
+        perror("mq_open");
+        system(current_umask.c_str());
+        exit(1);
+    }
+    system(current_umask.c_str());
+
+    pthread_t thread_recebe, thread_envia;
+    pthread_create(&thread_recebe, NULL, &receive_msg, NULL);
+    pthread_create(&thread_envia, NULL, &send_msg, NULL);
+
     initscr();
     raw();
     keypad(stdscr, TRUE);
 
-    printw("Press lol to Exit\n> ");
     vector<string> history;
-    string x = "", last = "";
+    string x = "";
     bool exit = false;
-    int row = 1, col = 0, it = 0, up_down = 0, down = 0, sadasd, pos;
+    int row = 1, col = 0, it = 0, up_down = 0, down = 0, pos;
     while (exit == false)
     {
         ch = getch();
@@ -74,7 +69,6 @@ int main()
                 }
                 else
                 {
-                    // x=last;
                     addstr(("> " + x).c_str());
                 }
             }
@@ -114,11 +108,57 @@ int main()
                 it++;
             }
             row++;
-            input(x, row);
+            char user[11], destinatario[11], texto[501];
+            char msg_enviada[524];
+            strcpy(user, "");
+            strcpy(destinatario, "");
+            strcpy(texto, "");
+            printw("> ");row++;
+
+            sscanf(x.c_str(), " %10[^:\n]:%10[^:]:%500[^\n]", user, destinatario, texto);
+
+            if (!strcmp(user, "exit"))
+            {
+                break;
+            }
+
+            if (!strcmp(user, "list"))
+            {
+                printw("\nLista de Usuários:\n");row++;
+                vector<char *> users = cmd_list();
+                for (int i = 0; i < users.size(); ++i)
+                    printw("%d - %s\n", i + 1, users[i]);row++;
+                printw("\n");row++;
+                continue;
+            }
+
+            if (!strlen(destinatario) || !strlen(texto) || !strlen(user))
+            {
+                printw("Formato inválido, tente novamente.\n");row++;
+                continue;
+            }
+
+            if (strcmp(user, user_name))
+            {
+                printw("Expedidor inválido, tente novamente.\n");row++;
+                continue;
+            }
+
+            strcpy(msg_enviada, user);
+            strcat(msg_enviada, ":");
+            strcat(msg_enviada, destinatario);
+            strcat(msg_enviada, ":");
+            strcat(msg_enviada, texto);
+            strcat(msg_enviada, "\n");
+
+            fila_msg_enviadas.push(msg_enviada);
+            sem_post(&S);
+
             x = "";
             col = 0;
             up_down = 0;
             break;
+
         default:
             x += ch;
             col++;
@@ -126,8 +166,7 @@ int main()
         }
     }
 
-    printw("\n\Exiting Now\n");
     endwin();
-
-    return 0;
+    mq_close(user_queue);
+    mq_unlink(user_queue_name);
 }
