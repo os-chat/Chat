@@ -45,7 +45,7 @@ void main_console(char *user_name)
         case KEY_UP:
             if (it - (up_down + 1) >= 0)
             {
-                last = x;
+                auto last = x;
                 move(row, 0); // move to begining of line
                 clrtoeol();   // clear line
                 col = 0;

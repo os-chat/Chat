@@ -1,5 +1,6 @@
-#ifndef _MAIN_TERMINAL_H_
-#define _MAIN_TERMINAL_H_
+#ifndef MAIN_TERMINAL_H
+#define MAIN_TERMINAL_H
+
 #include "common.h"
 #include "receive_msg.h"
 #include "send_msg.h"

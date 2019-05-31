@@ -1,7 +1,7 @@
 #include "window.h"
 #include <QGridLayout>
 #include <QLabel>
-#include <QPushButton>
+#include <QPushButton> 
 
 Window::Window(QWidget *parent) : QWidget(parent) {
     QHBoxLayout *tela = new QHBoxLayout(this);

@@ -1,5 +1,6 @@
 #include "main_interface.h"
 
+
 int main_interface(int argc, char *argv[], char *user_name) {
     signal(SIGINT, handle_sigint);
     QApplication app(argc, argv);

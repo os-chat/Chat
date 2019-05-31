@@ -1,6 +1,6 @@
 #ifndef MAIN_INTERFACE_H
 #define MAIN_INTERFACE_H
-#include "common.h"
+
 #include <QApplication>
 #include "window.h"
 
