@@ -21,16 +21,19 @@
 #include <string>
 #include <array>
 #include <ncurses.h>
+#include <regex>
+#include <sys/stat.h>
 
 using namespace std;
 
 extern const char protocol[];
 extern struct mq_attr attr;
 extern mqd_t user_queue;
-extern queue<char*> fila_msg_enviadas;
+extern queue<char *> fila_msg_enviadas;
 extern sem_t S;
 
-string exec(const char* cmd);
+bool exists_file(const string &name);
+string exec(const char *cmd);
 void handle_sigint(int sig);
 
 #endif

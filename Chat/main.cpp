@@ -19,8 +19,34 @@ int main(int argc, char *argv[])
     while (!strcmp(user_name, nome_negado))
     {
         printf("Nao é permitido usar o nome \'%s\', tente novamente com outro nome: ", user_name);
-        scanf(" %[^\n]", user_name);
+        scanf(" %10[^\n]", user_name);
     }
+
+    string system_user = exec("echo \"$USER\"");
+    regex r(R"(([^rwx0-9\-\s]).*?(?=\s))");
+    string ls = "ls -l ";
+    string pth = "/dev/mqueue/chat-";
+    string us(user_name);
+    if (exists_file(pth+us)) {
+        string output_ls = exec((ls+pth+us).c_str());
+        smatch m; 
+        regex_search(output_ls, m, r); 
+        // enquanto chat-X existir, e nao for pertencente à quem ta tentando criar
+        // insere outro nome
+        if (m[0] != system_user){
+            do 
+            {
+                printf("Usuário \'%s\' já existe ou é proibido. Tente novamente, com outro nome: ", user_name);
+                scanf(" %10[^\n]", user_name);
+                if(!strcmp(user_name, nome_negado)) continue;
+                us=user_name;
+                if(!exists_file(pth+us)) break;
+                output_ls = exec((ls+pth+us).c_str());
+                regex_search(output_ls, m, r); 
+            } while (m[0] != system_user);
+        }
+    }
+
 
     printf("-----------------------");
     for (size_t i = 0; i < strlen(user_name); ++i)
