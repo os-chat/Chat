@@ -70,5 +70,5 @@ void main_terminal(char *user_name, int opcao)
     }
 
     mq_close(user_queue);
-    mq_unlink(user_queue_name);
+    // mq_unlink(user_queue_name);
 }

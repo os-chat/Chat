@@ -33,6 +33,7 @@ void main_console(char *user_name, int opcao)
     WINDOW *win = initscr();
     raw();
     keypad(stdscr, TRUE);
+    scrollok(stdscr,TRUE);
     printw("> ");
     vector<string> history;
     string x = "", last;
