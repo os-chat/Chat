@@ -27,26 +27,29 @@ int main(int argc, char *argv[])
     string ls = "ls -l ";
     string pth = "/dev/mqueue/chat-";
     string us(user_name);
-    if (exists_file(pth+us)) {
-        string output_ls = exec((ls+pth+us).c_str());
-        smatch m; 
-        regex_search(output_ls, m, r); 
+    if (exists_file(pth + us))
+    {
+        string output_ls = exec((ls + pth + us).c_str());
+        smatch m;
+        regex_search(output_ls, m, r);
         // enquanto chat-X existir, e nao for pertencente à quem ta tentando criar
         // insere outro nome
-        if (m[0] != system_user){
-            do 
+        if (m[0] != system_user)
+        {
+            do
             {
                 printf("Usuário \'%s\' já existe ou é proibido. Tente novamente, com outro nome: ", user_name);
                 scanf(" %10[^\n]", user_name);
-                if(!strcmp(user_name, nome_negado)) continue;
-                us=user_name;
-                if(!exists_file(pth+us)) break;
-                output_ls = exec((ls+pth+us).c_str());
-                regex_search(output_ls, m, r); 
+                if (!strcmp(user_name, nome_negado))
+                    continue;
+                us = user_name;
+                if (!exists_file(pth + us))
+                    break;
+                output_ls = exec((ls + pth + us).c_str());
+                regex_search(output_ls, m, r);
             } while (m[0] != system_user);
         }
     }
-
 
     printf("-----------------------");
     for (size_t i = 0; i < strlen(user_name); ++i)
@@ -75,10 +78,12 @@ int main(int argc, char *argv[])
     system("clear");
 
     if (opcao == 1)
-        main_terminal(user_name);
+    {
+        main_terminal(user_name, opcao);
+    }
     else if (opcao == 2)
     {
-        main_console(user_name);
+        main_console(user_name, opcao);
     }
     else if (opcao == 3)
     {

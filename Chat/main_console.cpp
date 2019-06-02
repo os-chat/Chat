@@ -8,7 +8,7 @@ bool iequals(const string &a, const string &b)
                           return tolower(a) == tolower(b);
                       });
 }
-void main_console(char *user_name)
+void main_console(char *user_name, int opcao)
 {
     int ch;
 
@@ -27,7 +27,7 @@ void main_console(char *user_name)
     system(current_umask.c_str());
 
     pthread_t thread_recebe, thread_envia;
-    pthread_create(&thread_recebe, NULL, &receive_msg, NULL);
+    pthread_create(&thread_recebe, NULL, &receive_msg, (void*)opcao);
     pthread_create(&thread_envia, NULL, &send_msg, NULL);
 
     WINDOW *win = initscr();

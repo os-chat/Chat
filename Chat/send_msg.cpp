@@ -1,4 +1,35 @@
 #include "send_msg.h"
+// send msg to one unique user
+void *unique_send(void *ptr)
+{
+    mqd_t other_queue;
+    string protc = protocol;
+    string user = (char *)ptr;
+    string res = protc+user;
+    other_queue = mq_open(res.c_str(), O_WRONLY | O_NONBLOCK);
+    char msg_enviada[501];
+    strcpy(msg_enviada, fila_msg_enviadas.front());
+
+    int tentativas = 0;
+    while (tentativas <= 3)
+    {
+        if (mq_send(other_queue, msg_enviada, sizeof(msg_enviada), 0) < 0 && errno == EAGAIN)
+        {
+            tentativas++;
+            if (tentativas == 4)
+                break;
+            sleep(5 * tentativas);
+        }
+        else
+            break;
+    }
+    if (tentativas > 3)
+        printf("ERRO %s", msg_enviada);
+
+    mq_close(other_queue);
+    pthread_exit(NULL);
+}
+
 void *send_msg(void *ptr)
 {
     while (1)

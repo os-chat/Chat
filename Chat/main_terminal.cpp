@@ -1,6 +1,6 @@
 #include "main_terminal.h"
 
-void main_terminal(char *user_name)
+void main_terminal(char *user_name, int opcao)
 {
     signal(SIGINT, handle_sigint);
     char user_queue_name[20];
@@ -17,7 +17,7 @@ void main_terminal(char *user_name)
     system(current_umask.c_str());
 
     pthread_t thread_recebe, thread_envia;
-    pthread_create(&thread_recebe, NULL, &receive_msg, NULL);
+    pthread_create(&thread_recebe, NULL, &receive_msg, (void*)opcao);
     pthread_create(&thread_envia, NULL, &send_msg, NULL);
 
     while (1)
