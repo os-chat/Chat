@@ -5,7 +5,7 @@ void *unique_send(void *ptr)
 {
     mqd_t other_queue;
     string protc = protocol;
-    string user = *(static_cast<string *>(ptr));
+    string user = (char *)ptr;
     string res = protc + user;
     other_queue = mq_open(res.c_str(), O_WRONLY | O_NONBLOCK);
     char msg_enviada[501];
@@ -62,7 +62,7 @@ void *send_msg(void *ptr)
             {
                 if (strcmp(user_name, user_list[i].c_str()))
                 {
-                    pthread_create(&thread[i], NULL, unique_send, &user_list[i]);
+                    pthread_create(&thread[i], NULL, unique_send, (void *)user_list[i].c_str());
                 }
             }
         }
