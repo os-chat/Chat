@@ -94,5 +94,3 @@ int main(int argc, char *argv[])
 
     return 0;
 }
-
-//   0   5s    1    10s    2   15s    3

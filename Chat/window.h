@@ -6,9 +6,7 @@
 #include <QTextEdit>
 #include <QLineEdit>
 #include <QCoreApplication>
-#include "receive_msg.h"
-#include "send_msg.h"
-#include "cmd_list.h"
+#include <common.h>
 
 using namespace std;
 
@@ -17,12 +15,12 @@ public:
     explicit Window(QWidget *parent = nullptr);
     mqd_t user_queue;
     char user[11];
-    static void * startThread(void* context) {
-        ((Window*)context)->receive_msg();
-    }
+    static void * start_receive(void* context) { ((Window*)context)->receive_msg(); }
+    static void * start_send(void* context) { ((Window*)context)->thread_send_msg(); }
     void start() {
-        pthread_t thread_id;
-        pthread_create(&thread_id, 0, &startThread, this);
+        pthread_t t1, t2;
+        pthread_create(&t1, 0, &start_receive, this);
+        pthread_create(&t2, 0, &start_send, this);
     }
 
 private:
@@ -33,13 +31,15 @@ private:
 
 public slots:
     void * receive_msg();
+    void * thread_send_msg();
+    void * unique_send(void *ptr);
 
 private slots:
     void send_msg();
-    vector<char*> cmd_list();
+    vector<string> cmd_list();
     void show_users();
-    void limpar_retornos();
-    void limpar_mensagens();
+    void limpar_retornos() { campo_retornos->clear(); }
+    void limpar_mensagens() { campo_msg_recebida->clear(); }
 };
 
 #endif // WINDOW_H

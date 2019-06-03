@@ -2,6 +2,7 @@
 #include <QGridLayout>
 #include <QLabel>
 #include <QPushButton> 
+#include <dirent.h>
 
 Window::Window(QWidget *parent) : QWidget(parent) {
     QHBoxLayout *tela = new QHBoxLayout(this);
@@ -89,42 +90,8 @@ void Window::send_msg() {
     strcat(msg_enviada, mensagem);
     strcat(msg_enviada, "\n");
 
-    if(strcmp(destinatario, "all") == 0) { // se o destinatário for all
-        vector<char*> users = cmd_list();
-        for(auto u : users) {
-            if(strcmp(user, u)) {
-                strcpy(other_queue_name, protocol);
-                strcat(other_queue_name, u);
-                other_queue = mq_open (other_queue_name, O_WRONLY);
-                if (mq_send(other_queue, msg_enviada, sizeof(msg_enviada), 0) < 0) {
-                    perror ("mq_send");
-                    exit(1);
-                }
-
-                mq_close(other_queue);
-            }
-        }
-    }
-    else {
-        strcpy(other_queue_name, protocol);
-        strcat(other_queue_name, destinatario);
-
-        // O_WRONLY = Open - Write Only
-        if((other_queue = mq_open (other_queue_name, O_WRONLY)) < 0) {
-            char unk_user[25];
-            strcpy(unk_user, "UNKNOWNUSER ");
-            strcat(unk_user, destinatario);
-            campo_retornos->addItem(unk_user);
-        }
-        else {
-            if (mq_send(other_queue, msg_enviada, sizeof(msg_enviada), 0) < 0) {
-                perror ("mq_send");
-                exit(1);
-            }
-
-            mq_close(other_queue);
-        }
-    }
+    fila_msg_enviadas.push(msg_enviada);
+    sem_post(&S);
 
     campo_dest->setText("");
     campo_env_msg->setText("");
@@ -151,8 +118,78 @@ void * Window::receive_msg() {
     }
 }
 
-vector<char*> Window::cmd_list() {
-    vector<char*> users;
+void * Window::thread_send_msg() {
+    while (1) {
+        mqd_t other_queue;
+        char other_queue_name[20];
+        char *user_name, *destinatario, msg_enviada[524], token[524];
+        strcpy(token, fila_msg_enviadas.front());
+        user_name = strtok(token, ":");
+        destinatario = strtok(NULL, ":");
+        vector<string> user_list = cmd_list();
+
+        if (strcmp(destinatario, "all") == 0) { // se o destinatário for all
+            vector<pthread_t> thread;
+            for (size_t i = 0; i < user_list.size(); ++i) {
+                pthread_t t;
+                thread.push_back(t);
+            }
+
+            for (size_t i = 0; i < thread.size(); ++i) {
+                if (strcmp(user_name, user_list[i].c_str())) {
+                    //pthread_create(&thread[i], NULL, unique_send, (void *)user_list[i].c_str());
+                }
+            }
+        }
+        else {
+            strcpy(other_queue_name, protocol);
+            strcat(other_queue_name, destinatario);
+
+            // O_WRONLY = Open - Write Only
+            if ((other_queue = mq_open(other_queue_name, O_WRONLY | O_NONBLOCK)) < 0) {
+                printf("UNKNOWNUSER %s\n", destinatario);
+            }
+            else {
+                pthread_t t;
+                //pthread_create(&t, NULL, unique_send, (void *)destinatario);
+            }
+        }
+    }
+}
+
+void * Window::unique_send(void *ptr) {
+    mqd_t other_queue;
+    string protc = protocol;
+    string user = (char *)ptr;
+    string res = protc + user;
+    other_queue = mq_open(res.c_str(), O_WRONLY | O_NONBLOCK);
+    char msg_enviada[501];
+    strcpy(msg_enviada, fila_msg_enviadas.front());
+
+    int tentativas = 0;
+    while (tentativas <= 3) {
+        if (mq_send(other_queue, msg_enviada, sizeof(msg_enviada), 0) < 0 && errno == EAGAIN) {
+            tentativas++;
+            if (tentativas == 4)
+                break;
+            sleep(1 + tentativas);
+        }
+        else {
+            break;
+        }
+    }
+    if (tentativas > 3) {
+        string erro = "ERRO ";
+        erro += msg_enviada;
+        campo_retornos->addItem(QString::fromStdString(erro));
+    }
+
+    mq_close(other_queue);
+    pthread_exit(NULL);
+}
+
+vector<string> Window::cmd_list() {
+    vector<string> users;
     DIR *d;
     struct dirent *dir;
     d = opendir("/dev/mqueue");
@@ -172,16 +209,8 @@ vector<char*> Window::cmd_list() {
 }
 
 void Window::show_users() {
-    vector<char*> users = cmd_list();
+    vector<string> users = cmd_list();
     campo_retornos->addItem("Lista de Usuários:");
     for(auto u : users)
-        campo_retornos->addItem(u);
-}
-
-void Window::limpar_retornos() {
-    campo_retornos->clear();
-}
-
-void Window::limpar_mensagens() {
-    campo_msg_recebida->clear();
+        campo_retornos->addItem(QString::fromStdString(u));
 }
