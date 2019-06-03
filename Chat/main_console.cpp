@@ -126,7 +126,7 @@ void main_console(char *user_name, int opcao)
             if (!strcmp(user, "list"))
             {
                 printw("Lista de Usuários:\n");
-                vector<char *> users = cmd_list();
+                vector<const char *> users = cmd_list();
                 for (size_t i = 0; i < users.size(); ++i)
                 {
                     printw("%d - %s\n", i + 1, users[i]);

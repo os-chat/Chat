@@ -1,25 +1,22 @@
 #include "send_msg.h"
+
 // send msg to one unique user
-void *unique_send(void *ptr)
-{
+void *unique_send(void *ptr) {
     mqd_t other_queue;
     string protc = protocol;
     string user = (char *)ptr;
-    cout << user << endl;
     string res = protc + user;
     other_queue = mq_open(res.c_str(), O_WRONLY | O_NONBLOCK);
     char msg_enviada[501];
     strcpy(msg_enviada, fila_msg_enviadas.front());
 
     int tentativas = 0;
-    while (tentativas <= 3)
-    {
-        if (mq_send(other_queue, msg_enviada, sizeof(msg_enviada), 0) < 0 && errno == EAGAIN)
-        {
+    while (tentativas <= 3) {
+        if (mq_send(other_queue, msg_enviada, sizeof(msg_enviada), 0) < 0 && errno == EAGAIN) {
             tentativas++;
             if (tentativas == 4)
                 break;
-            sleep(5 * tentativas);
+            sleep(1 + tentativas);
         }
         else
             break;
@@ -31,10 +28,8 @@ void *unique_send(void *ptr)
     pthread_exit(NULL);
 }
 
-void *send_msg(void *ptr)
-{
-    while (1)
-    {
+void *send_msg(void *ptr) {
+    while (1) {
         sem_wait(&S);
 
         mqd_t other_queue;
@@ -43,25 +38,22 @@ void *send_msg(void *ptr)
         strcpy(token, fila_msg_enviadas.front());
         user_name = strtok(token, ":");
         destinatario = strtok(NULL, ":");
-        pthread_t tid[5];
-        // printw("destinatario = %s\n", destinatario);
-        if (strcmp(destinatario, "all") == 0)
-        { // se o destinatário for all
-            vector<char *> users = cmd_list();
-            // pthread_t t_all[users.size()+1];
-            for (size_t i = 0; i < users.size(); ++i)
-            {
-                if (strcmp(user_name, users[i]))
-                {
-                    printf("[%d] = `````````%s´´´´´´´´´´ = %d\n", i, users[i], strlen(users[i]));
-                    pthread_create(&tid[i], NULL, unique_send, (void *)users[i]);
-                    // printw("[%d] = `````````%s´´´´´´´´´´ = [[%s]] = %d\n", i, u, users[i], strlen(users[i].length());
-                    // refresh();
-                }
+        vector<const char *> user_list = cmd_list();
+
+        if (strcmp(destinatario, "all") == 0) { // se o destinatário for all
+            vector<pthread_t> thread;
+            for(size_t i = 0; i < user_list.size(); ++i) {
+                pthread_t t;
+                thread.push_back(t);
             }
+
+            user_list = cmd_list();
+
+            for(size_t i = 0; i < thread.size(); ++i)
+                if(strcmp(user_name, user_list[i]))
+                    pthread_create(&thread[i], NULL, unique_send, (void *)user_list[i]);
         }
-        else
-        {
+        else {
             strcpy(other_queue_name, protocol);
             strcat(other_queue_name, destinatario);
 
@@ -72,7 +64,8 @@ void *send_msg(void *ptr)
             }
             else
             {
-                pthread_create(&tid[0], NULL, unique_send, (void *)destinatario);
+                pthread_t t;
+                pthread_create(&t, NULL, unique_send, (void *)destinatario);
             }
         }
     }

@@ -1,7 +1,7 @@
 #include "cmd_list.h"
 
-vector<char*> cmd_list() {
-    vector<char*> users;
+vector<const char*> cmd_list() {
+    vector<const char*> users;
     DIR *d;
     struct dirent *dir;
     d = opendir("/dev/mqueue");
