@@ -25,12 +25,13 @@ int n, m;
 
 int func(void* xd){
     // int x = *((int*)(&xd));
-    char * x = (char*)xd;
+    string x =  *(static_cast<string *>(xd));
 
     cout << x << endl;
 }
 
 int main () {
-    func((void*)"ola");
+    string xd = "ola";
+    func(&xd);
     return 0;
 }

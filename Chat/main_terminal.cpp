@@ -39,9 +39,9 @@ void main_terminal(char *user_name, int opcao)
         if (!strcmp(user, "list"))
         {
             printf("\nLista de Usuários:\n");
-            vector<const char *> users = cmd_list();
-            for (int i = 0; i < users.size(); ++i)
-                printf("%d - %s\n", i + 1, users[i]);
+            vector<string> users = cmd_list();
+            for (size_t i = 0; i < users.size(); ++i)
+                printf("%d - %s\n", i + 1, users[i].c_str());
             printf("\n");
             continue;
         }

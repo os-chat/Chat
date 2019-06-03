@@ -2,6 +2,6 @@
 #define CMD_LIST_H
 #include "common.h"
 
-vector<const char*> cmd_list();
+vector<string> cmd_list();
 
 #endif
