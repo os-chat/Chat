@@ -16,24 +16,22 @@ void main_console(char *user_name, int opcao)
     char user_queue_name[20];
     strcpy(user_queue_name, protocol);
     strcat(user_queue_name, user_name);
-    string current_umask = "umask " + exec("umask");
-    system("umask u=rw,g=w,o=w");
+    mode_t prev_umask = umask(0155);
     if ((user_queue = mq_open(user_queue_name, O_RDWR | O_CREAT, 0622, &attr)) < 0)
     {
         perror("mq_open");
-        system(current_umask.c_str());
+        umask(prev_umask);
         exit(1);
     }
-    system(current_umask.c_str());
-
+    umask(prev_umask);
     pthread_t thread_recebe, thread_envia;
-    pthread_create(&thread_recebe, NULL, &receive_msg, (void*)opcao);
-    pthread_create(&thread_envia, NULL, &send_msg, NULL);
+    pthread_create(&thread_recebe, NULL, &receive_msg, (void *)opcao);
+    pthread_create(&thread_envia, NULL, &send_msg, (void *)opcao);
 
     WINDOW *win = initscr();
     raw();
     keypad(stdscr, TRUE);
-    scrollok(stdscr,TRUE);
+    scrollok(stdscr, TRUE);
     printw("> ");
     vector<string> history;
     string x = "", last;
@@ -45,7 +43,8 @@ void main_console(char *user_name, int opcao)
         switch (ch)
         {
         case KEY_UP:
-            if (!up_down) {
+            if (!up_down)
+            {
                 last = x;
             }
             if (it - (up_down + 1) >= 0)
@@ -85,7 +84,7 @@ void main_console(char *user_name, int opcao)
             break;
         case KEY_RIGHT:
             getyx(win, row, col);
-            if (col <= x.size()+1)
+            if (col <= x.size() + 1)
                 move(row, col + 1);
             break;
         case KEY_BACKSPACE:
@@ -102,7 +101,17 @@ void main_console(char *user_name, int opcao)
             }
             break;
         case 127:
-
+            if (x.size())
+            {
+                x.pop_back();
+                delch();
+            }
+            else
+            {
+                // impede que apague o "> "
+                getyx(win, row, col);
+                move(row, 2);
+            }
             break;
         case 10:
             if (iequals(x, "exit"))
@@ -115,6 +124,10 @@ void main_console(char *user_name, int opcao)
             {
                 history.push_back(x);
                 it++;
+            }
+            else
+            {
+                break;
             }
             char user[11], destinatario[11], texto[501];
             char msg_enviada[524];

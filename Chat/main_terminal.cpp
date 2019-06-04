@@ -6,19 +6,17 @@ void main_terminal(char *user_name, int opcao)
     char user_queue_name[20];
     strcpy(user_queue_name, protocol);
     strcat(user_queue_name, user_name);
-    string current_umask = "umask " + exec("umask");
-    system("umask u=rw,g=w,o=w");
+    mode_t prev_umask = umask(0155);
     if ((user_queue = mq_open(user_queue_name, O_RDWR | O_CREAT, 0622, &attr)) < 0)
     {
         perror("mq_open");
-        system(current_umask.c_str());
+        umask(prev_umask);
         exit(1);
     }
-    system(current_umask.c_str());
-
+    umask(prev_umask);
     pthread_t thread_recebe, thread_envia;
     pthread_create(&thread_recebe, NULL, &receive_msg, (void*)opcao);
-    pthread_create(&thread_envia, NULL, &send_msg, NULL);
+    pthread_create(&thread_envia, NULL, &send_msg, (void *)opcao);
 
     while (1)
     {
@@ -70,5 +68,5 @@ void main_terminal(char *user_name, int opcao)
     }
 
     mq_close(user_queue);
-    // mq_unlink(user_queue_name);
+    mq_unlink(user_queue_name);
 }

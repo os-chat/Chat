@@ -16,10 +16,15 @@ int main_interface(int argc, char *argv[], char *user_name) {
     char user_queue_name[20];
     strcpy(user_queue_name, protocol);
     strcat(user_queue_name, tela.user);
+    mode_t prev_umask = umask(0155);
     if ((tela.user_queue = mq_open(user_queue_name, O_RDWR|O_CREAT, 0622, &attr)) < 0) {
         perror("mq_open");
+        umask(prev_umask);
         exit(1);
     }
+    
+    umask(prev_umask);
+
     tela.start();
     tela.show();
 

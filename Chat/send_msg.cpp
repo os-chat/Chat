@@ -1,11 +1,16 @@
 #include "send_msg.h"
-
+typedef struct __opt_msg
+{
+    int opt;
+    char msg[501];
+} opt_msg;
 // send msg to one unique user
 void *unique_send(void *ptr)
 {
     mqd_t other_queue;
     string protc = protocol;
-    string user = (char *)ptr;
+    opt_msg control = *(opt_msg *)ptr;
+    string user = control.msg;
     string res = protc + user;
     other_queue = mq_open(res.c_str(), O_WRONLY | O_NONBLOCK);
     char msg_enviada[501];
@@ -28,7 +33,16 @@ void *unique_send(void *ptr)
     }
     if (tentativas > 3)
     {
-        printf("ERRO %s", msg_enviada);
+        if (control.opt == 1)
+        {
+            printf("ERRO %s\n> ", msg_enviada);
+            fflush(stdout);
+        }
+        if (control.opt == 2)
+        {
+            printw("ERRO %s\n> ", msg_enviada);
+            refresh();
+        }
     }
 
     mq_close(other_queue);
@@ -37,6 +51,8 @@ void *unique_send(void *ptr)
 
 void *send_msg(void *ptr)
 {
+    int opt = *((int *)(&ptr));
+
     while (1)
     {
         sem_wait(&S);
@@ -48,6 +64,9 @@ void *send_msg(void *ptr)
         user_name = strtok(token, ":");
         destinatario = strtok(NULL, ":");
         vector<string> user_list = cmd_list();
+
+        opt_msg control;
+        control.opt = opt;
 
         if (strcmp(destinatario, "all") == 0)
         { // se o destinatário for all
@@ -62,7 +81,8 @@ void *send_msg(void *ptr)
             {
                 if (strcmp(user_name, user_list[i].c_str()))
                 {
-                    pthread_create(&thread[i], NULL, unique_send, (void *)user_list[i].c_str());
+                    strcpy(control.msg, user_list[i].c_str());
+                    pthread_create(&thread[i], NULL, unique_send, &control);
                 }
             }
         }
@@ -74,12 +94,22 @@ void *send_msg(void *ptr)
             // O_WRONLY = Open - Write Only
             if ((other_queue = mq_open(other_queue_name, O_WRONLY | O_NONBLOCK)) < 0)
             {
-                printf("UNKNOWNUSER %s\n", destinatario);
+                if (opt == 1)
+                {
+                    printf("UNKNOWNUSER %s\n> ", destinatario);
+                }
+                if (opt == 2)
+                {
+                    printw("UNKNOWNUSER %s\n> ", destinatario);
+                    refresh();
+                }
+                fflush(stdout);
             }
             else
             {
                 pthread_t t;
-                pthread_create(&t, NULL, unique_send, (void *)destinatario);
+                strcpy(control.msg, destinatario);
+                pthread_create(&t, NULL, unique_send, &control);
             }
         }
     }
