@@ -29,7 +29,7 @@ void main_terminal(char *user_name, int opcao)
 
         scanf(" %10[^:\n]:%10[^:]:%500[^\n]", user, destinatario, texto);
 
-        if (!strcmp(user, "exit"))
+        if (!strcmp(user, "exit") || !strcmp(user, "sair"))
         {
             break;
         }

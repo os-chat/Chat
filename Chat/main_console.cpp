@@ -114,7 +114,7 @@ void main_console(char *user_name, int opcao)
             }
             break;
         case 10:
-            if (iequals(x, "exit"))
+            if (iequals(x, "exit") || iequals(x, "sair"))
             {
                 exit = true;
                 break;
