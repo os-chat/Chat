@@ -20,7 +20,7 @@ public:
     void start() {
         pthread_t t1, t2;
         pthread_create(&t1, 0, &start_receive, this);
-        pthread_create(&t2, 0, &start_send, this);
+        //pthread_create(&t2, 0, &start_send, this);
     }
 
 private:
