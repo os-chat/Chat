@@ -1,5 +1,3 @@
-#include "main_interface.h"
-#include "main_console.h"
 #include "main_terminal.h"
 #include "cmd_list.h"
 #include "receive_msg.h"
@@ -7,6 +5,10 @@
 
 int main(int argc, char *argv[])
 {
+    if (argc < 2) {
+        printf("Modo de utilização: ./Chat <nome-do-usuário>\nEncerrando programa.\n");
+        return 0;
+    }
     sem_init(&S, 0, 0);
     attr.mq_maxmsg = 10;
     attr.mq_msgsize = sizeof(char) * 524;
@@ -62,16 +64,14 @@ int main(int argc, char *argv[])
 
     printf("\n\nComo deseja usar o Chat?\n");
     printf("1. Terminal\n");
-    printf("2. Console\n");
-    printf("3. Interface Gráfica\n");
     printf("0. Sair\n");
 
     printf("\nOpção: ");
     scanf(" %d", &opcao);
 
-    while (opcao < 0 || opcao > 3)
+    while (opcao < 0 || opcao > 1)
     {
-        printf("Opção deve ser 0, 1, 2 ou 3, tente novamente: ");
+        printf("Opção deve ser 0 ou 1, tente novamente: ");
         scanf(" %d", &opcao);
     }
 
@@ -80,14 +80,6 @@ int main(int argc, char *argv[])
     if (opcao == 1)
     {
         main_terminal(user_name, opcao);
-    }
-    else if (opcao == 2)
-    {
-        main_console(user_name, opcao);
-    }
-    else if (opcao == 3)
-    {
-        main_interface(argc, argv, user_name);
     }
     else
         printf("Encerrando\n");

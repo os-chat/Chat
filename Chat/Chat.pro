@@ -5,9 +5,9 @@ INCLUDEPATH += .
 QT = core gui
 greaterThan(QT_MAJOR_VERSION, 4): QT += widgets
 
-QMAKE_LIBS += -lrt -lncurses
+QMAKE_LIBS += -lrt -lncurses -std=c++17
 
-HEADERS += window.h cmd_list.h common.h main_interface.h main_terminal.h receive_msg.h send_msg.h main_console.h
+HEADERS += cmd_list.h common.h main_terminal.h receive_msg.h send_msg.h
 
-SOURCES += main.cpp window.cpp cmd_list.cpp common.cpp main_interface.cpp main_terminal.cpp receive_msg.cpp send_msg.cpp main_console.cpp
+SOURCES += main.cpp cmd_list.cpp common.cpp main_terminal.cpp receive_msg.cpp send_msg.cpp
 

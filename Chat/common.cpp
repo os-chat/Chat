@@ -1,5 +1,18 @@
 #include "common.h"
 
+int generate_key(map<int, bool> &keys){
+    srand(time(NULL));
+    int key = rand();
+    keys[key]=true;
+    return key;
+}
+
+bool check_key(map<int, bool> &keys, int key){
+    return keys[key];
+}
+
+
+
 void handle_sigint(int sig)
 {
     printf("\nSe quiser finalizar o programa, digite: exit\n");
@@ -29,8 +42,25 @@ string exec(const char *cmd)
     return result;
 }
 
+vector<string> split(const char *str, char c/*=':'*/)
+{
+    vector<string> result;
+
+    do
+    {
+        const char *begin = str;
+
+        while(*str != c && *str)
+            str++;
+
+        result.push_back(string(begin, str));
+    } while (0 != *str++);
+
+    return result;
+}
+
 const char protocol[] = "/chat-";
 struct mq_attr attr;
 mqd_t user_queue;
-queue<char *> fila_msg_enviadas;
+queue<string> fila_msg_enviadas;
 sem_t S;

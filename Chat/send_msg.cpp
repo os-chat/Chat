@@ -13,13 +13,12 @@ void *unique_send(void *ptr)
     string user = control.msg;
     string res = protc + user;
     other_queue = mq_open(res.c_str(), O_WRONLY | O_NONBLOCK);
-    char msg_enviada[501];
-    strcpy(msg_enviada, fila_msg_enviadas.front());
+    string msg_enviada = fila_msg_enviadas.front();
 
     int tentativas = 0;
     while (tentativas <= 3)
     {
-        if (mq_send(other_queue, msg_enviada, sizeof(msg_enviada), 0) < 0 && errno == EAGAIN)
+        if (mq_send(other_queue, msg_enviada.c_str(), sizeof(msg_enviada), 0) < 0 && errno == EAGAIN)
         {
             tentativas++;
             if (tentativas == 4)
@@ -35,12 +34,12 @@ void *unique_send(void *ptr)
     {
         if (control.opt == 1)
         {
-            printf("ERRO %s\n> ", msg_enviada);
+            printf("ERRO %s\n> ", msg_enviada.c_str());
             fflush(stdout);
         }
         if (control.opt == 2)
         {
-            printw("ERRO %s\n> ", msg_enviada);
+            printw("ERRO %s\n> ", msg_enviada.c_str());
             refresh();
         }
     }
@@ -58,17 +57,18 @@ void *send_msg(void *ptr)
         sem_wait(&S);
 
         mqd_t other_queue;
-        char other_queue_name[20];
-        char *user_name, *destinatario, msg_enviada[524], token[524];
-        strcpy(token, fila_msg_enviadas.front());
-        user_name = strtok(token, ":");
-        destinatario = strtok(NULL, ":");
+        string other_queue_name;
+        string user_name, destinatario;
+        string token= fila_msg_enviadas.front();
+        auto tokens = split(token.c_str());
+        user_name = tokens[0];
+        destinatario = tokens[1];
         vector<string> user_list = cmd_list();
 
         opt_msg control;
         control.opt = opt;
 
-        if (strcmp(destinatario, "all") == 0)
+        if (destinatario == "all")
         { // se o destinatário for all
             vector<pthread_t> thread;
             for (size_t i = 0; i < user_list.size(); ++i)
@@ -79,7 +79,7 @@ void *send_msg(void *ptr)
 
             for (size_t i = 0; i < thread.size(); ++i)
             {
-                if (strcmp(user_name, user_list[i].c_str()))
+                if (user_name != user_list[i])
                 {
                     strcpy(control.msg, user_list[i].c_str());
                     pthread_create(&thread[i], NULL, unique_send, &control);
@@ -88,19 +88,18 @@ void *send_msg(void *ptr)
         }
         else
         {
-            strcpy(other_queue_name, protocol);
-            strcat(other_queue_name, destinatario);
+            other_queue_name=protocol+destinatario;
 
             // O_WRONLY = Open - Write Only
-            if ((other_queue = mq_open(other_queue_name, O_WRONLY | O_NONBLOCK)) < 0)
+            if ((other_queue = mq_open(other_queue_name.c_str(), O_WRONLY | O_NONBLOCK)) < 0)
             {
                 if (opt == 1)
                 {
-                    printf("UNKNOWNUSER %s\n> ", destinatario);
+                    printf("UNKNOWNUSER %s\n> ", destinatario.c_str());
                 }
                 if (opt == 2)
                 {
-                    printw("UNKNOWNUSER %s\n> ", destinatario);
+                    printw("UNKNOWNUSER %s\n> ", destinatario.c_str());
                     refresh();
                 }
                 fflush(stdout);
@@ -108,7 +107,7 @@ void *send_msg(void *ptr)
             else
             {
                 pthread_t t;
-                strcpy(control.msg, destinatario);
+                strcpy(control.msg, destinatario.c_str());
                 pthread_create(&t, NULL, unique_send, &control);
             }
         }

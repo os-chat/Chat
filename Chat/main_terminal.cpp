@@ -2,6 +2,7 @@
 
 void main_terminal(char *user_name, int opcao)
 {
+    map<int,bool> keys;
     signal(SIGINT, handle_sigint);
     char user_queue_name[20];
     strcpy(user_queue_name, protocol);
@@ -21,7 +22,7 @@ void main_terminal(char *user_name, int opcao)
     while (1)
     {
         char user[11], destinatario[11], texto[501];
-        char msg_enviada[524];
+        string msg_enviada;
         strcpy(user, "");
         strcpy(destinatario, "");
         strcpy(texto, "");
@@ -55,15 +56,15 @@ void main_terminal(char *user_name, int opcao)
             printf("Expedidor inválido, tente novamente.\n");
             continue;
         }
+            msg_enviada=user;
+            msg_enviada+=":";
+            msg_enviada+=destinatario;
+            msg_enviada+=":";
+            msg_enviada+=texto;
+            msg_enviada+=":";
+            msg_enviada+=to_string(generate_key(keys))+"\n";
 
-        strcpy(msg_enviada, user);
-        strcat(msg_enviada, ":");
-        strcat(msg_enviada, destinatario);
-        strcat(msg_enviada, ":");
-        strcat(msg_enviada, texto);
-        strcat(msg_enviada, "\n");
-
-        fila_msg_enviadas.push(msg_enviada);
+            fila_msg_enviadas.push(msg_enviada);
         sem_post(&S);
     }
 
