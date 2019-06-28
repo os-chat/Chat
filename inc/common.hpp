@@ -1,5 +1,5 @@
-#ifndef COMMON_H
-#define COMMON_H
+#ifndef COMMON_HPP
+#define COMMON_HPP
 
 #include <pthread.h>
 #include <errno.h>
@@ -20,9 +20,7 @@
 #include <stdexcept>
 #include <string>
 #include <array>
-#include <ncurses.h>
 #include <regex>
-#include <sys/stat.h>
 #include <time.h>
 
 using namespace std;

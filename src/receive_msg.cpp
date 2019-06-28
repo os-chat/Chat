@@ -1,9 +1,8 @@
-#include "receive_msg.h"
+#include "receive_msg.hpp"
 
 void *receive_msg(void *ptr)
 {
     char msg_recebida[524], *user, *dest, msg[524];
-    int opt = *((int *)(&ptr));
     while (1)
     {
         strcpy(msg, "");
@@ -21,15 +20,7 @@ void *receive_msg(void *ptr)
         strcat(msg, user);
         strcat(msg, ": ");
         strcat(msg, strtok(NULL, ":"));
-        if (opt == 1)
-        {
-            printf("%s> ", msg);
-        }
-        if (opt == 2)
-        {
-            printw("%s> ", msg);
-            refresh();
-        }
+        printf("%s> ", msg);
         fflush(stdout);
     }
 }

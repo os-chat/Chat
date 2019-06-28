@@ -3,17 +3,11 @@
 ## Alunos
 
 ### Henrique Martins de Messias - 17/0050394
-### Guilherme de Lyra Pereira - 15.0128231
+### Guilherme de Lyra Pereira - 15/0128231
 
 ## Executando o Programa
 
-No terminal, vá até a pasta do projeto e digite os seguintes comandos:
-```bash
-    $ cd Chat/
-    $ qmake
-```
-
-Para compilar, basta digitar:
+No terminal, vá até a pasta do projeto e digite o seguinte comando para compilar:
 
 ```bash
     $ make
@@ -22,19 +16,8 @@ Para compilar, basta digitar:
 Para executar o código, digite:
 
 ```bash
-    $ ./Chat nickname # substitua 'nickname' por um nome de preferência
+    $ ./chat nickname # substitua 'nickname' por um nome de preferência
 ```
-
-## Diferenças entre os tipos de Chat
-
-### 1 - Terminal
- - Versão minimalista do Chat, sem recursos adicionais
-
-### 2 - Console
- - Versão similar ao console do Python, Ruby e Node, onde é possível utilizar as setas para reenviar mensagens etc
-
-### 3 - Interface
- - Versão com interface gráfica, que ajuda na visualização das mensagens enviadas e recebidas
 
 ## Implementação do Protocolo
  - Os seguintes protocolos foram seguidos:
@@ -49,12 +32,9 @@ Para executar o código, digite:
 
 
 ## Problemas conhecidos
- - Chat por interface gráfica ainda não está funcionando 
- - No Chat por console: 
-   - O 'delete' não apaga caracteres
-   - O 'backspace' sempre apaga somente o último caractere da string ao invés da posição do cursor
+ - Envio de mensagens por broadcast apresenta algumas falhas
 
 ## Dificuldades de implementação do modelo de threads.
  - Não houve problemas na thread de recebimento de mensagens
  - Em relação a thread de envio de mensagens, houve dificuldade na implementação do envio para cada usuário no comando broadcast
- - Para enviar mensagem para um usuário único, a maior dificuldade foi com as tentivas de erro, mas não a dificuldade não foi grande
+ - Para enviar mensagem para um usuário único, a maior dificuldade foi com as tentivas de erro, mas a dificuldade não foi grande

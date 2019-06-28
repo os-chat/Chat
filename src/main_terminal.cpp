@@ -1,12 +1,12 @@
-#include "main_terminal.h"
+#include "main_terminal.hpp"
 
-void main_terminal(char *user_name, int opcao)
+void main_terminal(string user_name)
 {
     map<int,bool> keys;
     signal(SIGINT, handle_sigint);
     char user_queue_name[20];
     strcpy(user_queue_name, protocol);
-    strcat(user_queue_name, user_name);
+    //strcat(user_queue_name, user_name);
     mode_t prev_umask = umask(0155);
     if ((user_queue = mq_open(user_queue_name, O_RDWR | O_CREAT, 0622, &attr)) < 0)
     {
@@ -16,8 +16,8 @@ void main_terminal(char *user_name, int opcao)
     }
     umask(prev_umask);
     pthread_t thread_recebe, thread_envia;
-    pthread_create(&thread_recebe, NULL, &receive_msg, (void*)opcao);
-    pthread_create(&thread_envia, NULL, &send_msg, (void *)opcao);
+    pthread_create(&thread_recebe, NULL, &receive_msg, NULL);
+    pthread_create(&thread_envia, NULL, &send_msg, NULL);
 
     while (1)
     {
@@ -40,7 +40,7 @@ void main_terminal(char *user_name, int opcao)
             printf("\nLista de Usuários:\n");
             vector<string> users = cmd_list();
             for (size_t i = 0; i < users.size(); ++i)
-                printf("%d - %s\n", i + 1, users[i].c_str());
+                printf("%ld - %s\n", i + 1, users[i].c_str());
             printf("\n");
             continue;
         }
@@ -51,7 +51,7 @@ void main_terminal(char *user_name, int opcao)
             continue;
         }
 
-        if (strcmp(user, user_name))
+        if (strcmp(user, user))
         {
             printf("Expedidor inválido, tente novamente.\n");
             continue;

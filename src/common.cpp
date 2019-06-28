@@ -1,4 +1,4 @@
-#include "common.h"
+#include "common.hpp"
 
 int generate_key(map<int, bool> &keys){
     srand(time(NULL));
