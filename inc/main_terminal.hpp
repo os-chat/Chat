@@ -6,6 +6,6 @@
 #include "send_msg.hpp"
 #include "cmd_list.hpp"
 
-void main_terminal(string user_name);
+void main_terminal(const string user_name);
 
 #endif

@@ -1,14 +1,13 @@
 #include "main_terminal.hpp"
 
-void main_terminal(string user_name)
+void main_terminal(const string user_name)
 {
     map<int,bool> keys;
     signal(SIGINT, handle_sigint);
-    char user_queue_name[20];
-    strcpy(user_queue_name, protocol);
-    //strcat(user_queue_name, user_name);
+    string user_queue_name(protocol);
+    user_queue_name += user_name;
     mode_t prev_umask = umask(0155);
-    if ((user_queue = mq_open(user_queue_name, O_RDWR | O_CREAT, 0622, &attr)) < 0)
+    if ((user_queue = mq_open(user_queue_name.c_str(), O_RDWR | O_CREAT, 0622, &attr)) < 0)
     {
         perror("mq_open");
         umask(prev_umask);
@@ -19,24 +18,22 @@ void main_terminal(string user_name)
     pthread_create(&thread_recebe, NULL, &receive_msg, NULL);
     pthread_create(&thread_envia, NULL, &send_msg, NULL);
 
-    while (1)
-    {
-        char user[11], destinatario[11], texto[501];
-        string msg_enviada;
-        strcpy(user, "");
-        strcpy(destinatario, "");
-        strcpy(texto, "");
+    while (1) {
+        char user_c[11], destinatario_c[11], texto_c[501];
+        strcpy(user_c, "");
+        strcpy(destinatario_c, "");
+        strcpy(texto_c, "");
         printf("> ");
 
-        scanf(" %10[^:\n]:%10[^:]:%500[^\n]", user, destinatario, texto);
+        scanf(" %10[^:\n]:%10[^:]:%500[^\n]", user_c, destinatario_c, texto_c);
 
-        if (!strcmp(user, "exit") || !strcmp(user, "sair"))
-        {
+        string user(user_c);
+
+        if (user == "exit" || user == "sair") {
             break;
         }
 
-        if (!strcmp(user, "list"))
-        {
+        if (user == "list") {
             printf("\nLista de Usuários:\n");
             vector<string> users = cmd_list();
             for (size_t i = 0; i < users.size(); ++i)
@@ -45,29 +42,30 @@ void main_terminal(string user_name)
             continue;
         }
 
-        if (!strlen(destinatario) || !strlen(texto) || !strlen(user))
-        {
+        if (user != user_name) {
+            printf("Expedidor inválido, tente novamente.\n");
+            continue;
+        }
+
+        if (!strlen(destinatario_c) || !strlen(texto_c)) {
             printf("Formato inválido, tente novamente.\n");
             continue;
         }
 
-        if (strcmp(user, user))
-        {
-            printf("Expedidor inválido, tente novamente.\n");
-            continue;
-        }
-            msg_enviada=user;
-            msg_enviada+=":";
-            msg_enviada+=destinatario;
-            msg_enviada+=":";
-            msg_enviada+=texto;
-            msg_enviada+=":";
-            msg_enviada+=to_string(generate_key(keys))+"\n";
+        string destinatario(destinatario_c), texto(texto_c), msg_enviada;
 
-            fila_msg_enviadas.push(msg_enviada);
+        msg_enviada=user;
+        msg_enviada+=":";
+        msg_enviada+=destinatario;
+        msg_enviada+=":";
+        msg_enviada+=texto;
+        msg_enviada+=":";
+        msg_enviada+=to_string(generate_key(keys))+"\n";
+        fila_msg_enviadas.push(msg_enviada);
+
         sem_post(&S);
     }
 
     mq_close(user_queue);
-    mq_unlink(user_queue_name);
+    mq_unlink(user_queue_name.c_str());
 }
