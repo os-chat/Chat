@@ -25,10 +25,12 @@
 
 using namespace std;
 
-extern const char protocol[];
+extern const char user_protocol[];
+extern const char group_protocol[];
 extern struct mq_attr attr;
 extern mqd_t user_queue;
 extern queue<string> fila_msg_enviadas;
+extern map<string, bool> users;
 extern sem_t S;
 
 vector<string> split(const char *str, char c = ':');

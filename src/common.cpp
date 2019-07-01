@@ -59,8 +59,10 @@ vector<string> split(const char *str, char c/*=':'*/)
     return result;
 }
 
-const char protocol[] = "/chat-";
+const char user_protocol[] = "/chat-";
+const char group_protocol[] = "/canal-";
 struct mq_attr attr;
 mqd_t user_queue;
 queue<string> fila_msg_enviadas;
+map<string, bool> users;
 sem_t S;
