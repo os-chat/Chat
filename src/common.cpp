@@ -1,20 +1,17 @@
 #include "common.hpp"
 
-int generate_key(map<int, bool> &keys){
+int generate_key(){
     srand(time(NULL));
-    int key = rand();
+    unsigned int key = rand();
     keys[key]=true;
     return key;
 }
 
-bool check_key(map<int, bool> &keys, int key){
+bool check_key(int key){
     return keys[key];
 }
 
-
-
-void handle_sigint(int sig)
-{
+void handle_sigint(int sig) {
     printf("\nSe quiser finalizar o programa, digite: exit\n");
 }
 
@@ -66,3 +63,4 @@ mqd_t user_queue;
 queue<string> fila_msg_enviadas;
 map<string, bool> users;
 sem_t S;
+map<int, bool> keys;

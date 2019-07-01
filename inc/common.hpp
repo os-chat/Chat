@@ -32,12 +32,13 @@ extern mqd_t user_queue;
 extern queue<string> fila_msg_enviadas;
 extern map<string, bool> users;
 extern sem_t S;
+extern map<int, bool> keys;
 
 vector<string> split(const char *str, char c = ':');
 bool exists_file(const string &name);
 string exec(const char *cmd);
 void handle_sigint(int sig);
-bool check_key(map<int, bool> &keys, int key);
-int generate_key(map<int, bool> &keys);
+bool check_key(int key);
+int generate_key();
 
 #endif

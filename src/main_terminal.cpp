@@ -29,11 +29,8 @@ void main_terminal(const string user_name, int opcao)
     mq_unlink(user_queue_name.c_str());
 }
 
-void individual(string user_name)
-{
-    map<int, bool> keys;
-    while (1)
-    {
+void individual(string user_name) {
+    while (1) {
         char user_c[11], destinatario_c[11], texto_c[501];
         strcpy(user_c, "");
         strcpy(destinatario_c, "");
@@ -44,13 +41,11 @@ void individual(string user_name)
 
         string user(user_c);
 
-        if (user == "exit" || user == "sair")
-        {
+        if (user == "exit" || user == "sair") {
             break;
         }
 
-        if (user == "list")
-        {
+        if (user == "list") {
             printf("\nLista de Usuários:\n");
             vector<string> cmd_users = cmd_list();
             for (size_t i = 0; i < cmd_users.size(); ++i)
@@ -61,14 +56,12 @@ void individual(string user_name)
             continue;
         }
 
-        if (user != user_name)
-        {
+        if (user != user_name) {
             printf("Expedidor inválido, tente novamente.\n");
             continue;
         }
 
-        if (!strlen(destinatario_c) || !strlen(texto_c))
-        {
+        if (!strlen(destinatario_c) || !strlen(texto_c)) {
             printf("Formato inválido, tente novamente.\n");
             continue;
         }
@@ -81,7 +74,7 @@ void individual(string user_name)
         msg_enviada += ":";
         msg_enviada += texto;
         msg_enviada += ":";
-        msg_enviada += to_string(generate_key(keys)) + "\n";
+        msg_enviada += to_string(generate_key()) + "\n";
         fila_msg_enviadas.push(msg_enviada);
 
         sem_post(&S);
