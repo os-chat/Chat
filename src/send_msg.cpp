@@ -46,10 +46,10 @@ void *send_msg(void *ptr)
         auto tokens = split(token.c_str());
         user_name = tokens[0];
         destinatario = tokens[1];
-        vector<string> user_list = cmd_list();
 
         if (destinatario == "all")
         { // se o destinatário for all
+            vector<string> user_list = cmd_list("chat");
             vector<pthread_t> thread;
             for (size_t i = 0; i < user_list.size(); ++i)
             {
@@ -73,6 +73,7 @@ void *send_msg(void *ptr)
         else
         {
             string protc;
+            
             if (destinatario[0] == '#')
             {
                 protc = group_protocol;
@@ -94,6 +95,10 @@ void *send_msg(void *ptr)
                 pthread_t t;
                 pthread_create(&t, NULL, unique_send, (void *)other_queue_name.c_str());
                 pthread_join(t, NULL);
+
+                if (protc == string(group_protocol)) {
+                    joined_groups[destinatario]=true;
+                }
             }
         }
         fila_msg_enviadas.pop();

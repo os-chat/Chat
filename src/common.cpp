@@ -64,3 +64,4 @@ queue<string> fila_msg_enviadas;
 map<string, bool> users;
 sem_t S;
 map<int, bool> keys;
+map<string, bool> joined_groups;

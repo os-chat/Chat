@@ -41,17 +41,58 @@ void individual(string user_name) {
 
         string user(user_c);
 
-        if (user == "exit" || user == "sair") {
+        if (user == "exit" || user == "sair")
+        {
+            float delay = 0.5*joined_groups.size();
+            for (auto u : joined_groups){
+                string leave=user_name+":#"+u.first+":leave";
+                cout << leave << endl;
+                fila_msg_enviadas.push(leave);
+                sem_post(&S);
+            }
+            // break;
+            sleep(delay);
             break;
         }
 
-        if (user == "list") {
-            printf("\nLista de Usuários:\n");
-            vector<string> cmd_users = cmd_list();
-            for (size_t i = 0; i < cmd_users.size(); ++i)
+        if (user == "list")
+        {
+            printf("\n\nO que deseja listar?\n");
+            printf("1. Usuários\n");
+            printf("2. Salas de bate-papo\n");
+            printf("0. Voltar\n");
+
+            printf("\nOpção: ");
+            int opcao;
+            scanf(" %d", &opcao);
+
+            while (opcao < 0 || opcao > 2)
             {
-                printf("%ld - %s\n", i + 1, cmd_users[i].c_str());
+                printf("Opção deve ser 0, 1 ou 2. Tente novamente: ");
+                scanf(" %d", &opcao);
             }
+
+            system("clear");
+
+            if (opcao == 1)
+            {
+                printf("\nLista de Usuários:\n");
+                vector<string> cmd_users = cmd_list("chat");
+                for (size_t i = 0; i < cmd_users.size(); ++i)
+                {
+                    printf("%ld - %s\n", i + 1, cmd_users[i].c_str());
+                }
+            }
+            if (opcao == 2)
+            {
+                printf("\nLista de Salas de Bate-Papo:\n");
+                vector<string> cmd_users = cmd_list("canal");
+                for (size_t i = 0; i < cmd_users.size(); ++i)
+                {
+                    printf("%ld - %s\n", i + 1, cmd_users[i].c_str());
+                }  
+            }    
+
             printf("\n");
             continue;
         }
@@ -76,7 +117,11 @@ void individual(string user_name) {
         msg_enviada += ":";
         msg_enviada += to_string(generate_key()) + "\n";
         fila_msg_enviadas.push(msg_enviada);
-
+        
+        if (destinatario[0]=='#'&&texto=="leave") {
+            destinatario.erase(0,1);
+            joined_groups.erase(destinatario);
+        }
         sem_post(&S);
     }
 }
