@@ -65,4 +65,5 @@ struct mq_attr attr;
 mqd_t user_queue;
 queue<string> fila_msg_enviadas;
 map<string, bool> users;
+map<string, bool> joined_groups;
 sem_t S;

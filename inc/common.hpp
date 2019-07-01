@@ -31,6 +31,7 @@ extern struct mq_attr attr;
 extern mqd_t user_queue;
 extern queue<string> fila_msg_enviadas;
 extern map<string, bool> users;
+extern map<string, bool> joined_groups;
 extern sem_t S;
 
 vector<string> split(const char *str, char c = ':');
