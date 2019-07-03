@@ -25,15 +25,13 @@
 
 using namespace std;
 
-extern const char user_protocol[];
-extern const char group_protocol[];
+extern const char protocol[];
 extern struct mq_attr attr;
 extern mqd_t user_queue;
 extern queue<string> fila_msg_enviadas;
-extern map<string, bool> users;
-extern map<string, bool> joined_groups;
 extern sem_t S;
-extern map<int, bool> keys;
+extern map<int,bool> keys;
+extern string user_atual;
 
 vector<string> split(const char *str, char c = ':');
 bool exists_file(const string &name);

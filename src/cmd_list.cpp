@@ -1,6 +1,6 @@
 #include "cmd_list.hpp"
 
-vector<string> cmd_list(const char * protocol) {
+vector<string> cmd_list() {
     vector<string> users;
     DIR *d;
     struct dirent *dir;
@@ -9,7 +9,7 @@ vector<string> cmd_list(const char * protocol) {
         while ((dir = readdir(d)) != NULL) {
             char *token;
             token = strtok(dir->d_name, "-");
-            if (strcmp(token, protocol) == 0) {
+            if (strcmp(token, "chat") == 0) {
                 token = strtok(NULL, "-");
                 users.push_back(token);
             }

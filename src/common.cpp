@@ -1,13 +1,16 @@
 #include "common.hpp"
 
-int generate_key(){
+int generate_key() {
     srand(time(NULL));
-    unsigned int key = rand();
+    int key;
+    do {
+       key = rand();
+    } while (keys.find(key) != keys.end());
     keys[key]=true;
     return key;
 }
 
-bool check_key(int key){
+bool check_key(int key) {
     return keys[key];
 }
 
@@ -15,8 +18,7 @@ void handle_sigint(int sig) {
     printf("\nSe quiser finalizar o programa, digite: exit\n");
 }
 
-bool exists_file(const string &name)
-{
+bool exists_file(const string &name) {
     struct stat buffer;
     return (stat(name.c_str(), &buffer) == 0);
 }
@@ -56,12 +58,10 @@ vector<string> split(const char *str, char c/*=':'*/)
     return result;
 }
 
-const char user_protocol[] = "/chat-";
-const char group_protocol[] = "/canal-";
+const char protocol[] = "/chat-";
 struct mq_attr attr;
 mqd_t user_queue;
 queue<string> fila_msg_enviadas;
-map<string, bool> users;
 sem_t S;
-map<int, bool> keys;
-map<string, bool> joined_groups;
+map<int,bool> keys;
+string user_atual;

@@ -3,6 +3,6 @@
 
 #include "common.hpp"
 
-vector<string> cmd_list(const char * protocol);
+vector<string> cmd_list();
 
 #endif

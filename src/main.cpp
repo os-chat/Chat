@@ -55,37 +55,18 @@ int main(int argc, char *argv[])
     }
 
     printf("-----------------------");
-    for (size_t i = 0; i < user_name.length(); ++i)
+    for (size_t i = 0; i < user_name.size(); ++i)
         printf("-");
 
     printf("\n| Bem-vindo ao Chat, %s |\n", user_name.c_str());
     printf("-----------------------");
-    for (size_t i = 0; i < user_name.length(); ++i)
+    for (size_t i = 0; i < user_name.size(); ++i)
         printf("-");
+    
+    printf("\n");
 
-    printf("\n\nComo deseja usar o Chat?\n");
-    printf("1. Criar usuário\n");
-    printf("2. Criar bate-papo\n");
-    printf("0. Sair\n");
-
-    printf("\nOpção: ");
-    int opcao;
-    scanf(" %d", &opcao);
-
-    while (opcao < 0 || opcao > 2)
-    {
-        printf("Opção deve ser 0, 1 ou 2. T  ente novamente: ");
-        scanf(" %d", &opcao);
-    }
-
-    system("clear");
-
-    if (opcao == 1 || opcao == 2)
-    {
-        main_terminal(user_name, opcao);
-    }
-    else
-        printf("Encerrando\n");
+    user_atual = user_name;
+    main_terminal(user_name);
 
     return 0;
 }
