@@ -5,8 +5,7 @@ void main_terminal(const string user_name) {
     string user_queue_name(protocol);
     user_queue_name += user_name;
     mode_t prev_umask = umask(0155);
-    if ((user_queue = mq_open(user_queue_name.c_str(), O_RDWR | O_CREAT, 0622, &attr)) < 0)
-    {
+    if ((user_queue = mq_open(user_queue_name.c_str(), O_RDWR | O_CREAT, 0622, &attr)) < 0) {
         perror("mq_open");
         umask(prev_umask);
         exit(1);
@@ -23,7 +22,7 @@ void main_terminal(const string user_name) {
         strcpy(texto_c, "");
         printf("> ");
 
-        scanf(" %10[^:\n]:%10[^:]:%500[^\n]", user_c, destinatario_c, texto_c);
+        scanf(" %10[^:\n]:%10[^:\n]:%500[^\n]", user_c, destinatario_c, texto_c);
 
         string user(user_c);
 
@@ -40,6 +39,22 @@ void main_terminal(const string user_name) {
             continue;
         }
 
+        string destinatario(destinatario_c);
+
+        if(user == "cc") {
+            string channel_name = "/canal-" + destinatario;
+            mode_t prev_umask = umask(0155);
+            mqd_t channel;
+            if ((channel = mq_open(channel_name.c_str(), O_RDWR | O_CREAT | O_EXCL, 0622, &attr)) < 0 && errno == EEXIST) {
+                perror("mq_open");
+                umask(prev_umask);
+                printf("Erro ao criar canal \'%s\'\n", destinatario_c);
+            }
+            umask(prev_umask);
+            canais.push_back({ .dono = user_atual, .mq_canal = channel, .nome = channel_name, .usuarios = {} });
+            continue;
+        }
+
         if (user != user_name) {
             printf("Expedidor inválido, tente novamente.\n");
             continue;
@@ -50,7 +65,7 @@ void main_terminal(const string user_name) {
             continue;
         }
 
-        string destinatario(destinatario_c), texto(texto_c), msg_enviada;
+        string texto(texto_c), msg_enviada;
 
         msg_enviada=user;
         msg_enviada+=":";

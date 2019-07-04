@@ -28,8 +28,7 @@ int main(int argc, char *argv[])
     string ls = "ls -l ";
     string pth = "/dev/mqueue/chat-";
     string us(user_name);
-    if (exists_file(pth + us))
-    {
+    if (exists_file(pth + us)) {
         string output_ls = exec((ls + pth + us).c_str());
         smatch m;
         regex_search(output_ls, m, r);

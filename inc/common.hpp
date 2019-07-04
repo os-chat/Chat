@@ -25,6 +25,13 @@
 
 using namespace std;
 
+typedef struct _canal {
+    string dono;
+    mqd_t mq_canal;
+    string nome;
+    vector<string> usuarios;
+} canal;
+
 extern const char protocol[];
 extern struct mq_attr attr;
 extern mqd_t user_queue;
@@ -32,6 +39,7 @@ extern queue<string> fila_msg_enviadas;
 extern sem_t S;
 extern map<int,bool> keys;
 extern string user_atual;
+extern vector<canal> canais;
 
 vector<string> split(const char *str, char c = ':');
 bool exists_file(const string &name);

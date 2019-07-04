@@ -65,3 +65,4 @@ queue<string> fila_msg_enviadas;
 sem_t S;
 map<int,bool> keys;
 string user_atual;
+vector<canal> canais;
