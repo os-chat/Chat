@@ -7,5 +7,6 @@
 #include "cmd_list.hpp"
 
 void main_terminal(const string user_name);
+void grupo(const char u[], const char d[], const char m[]);
 
 #endif

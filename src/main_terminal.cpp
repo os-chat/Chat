@@ -24,6 +24,12 @@ void main_terminal(const string user_name) {
 
         scanf(" %10[^:\n]:%10[^:\n]:%500[^\n]", user_c, destinatario_c, texto_c);
 
+        if(destinatario_c[0] == '#') {
+            grupo(user_c, destinatario_c, texto_c);
+            continue;
+        }
+            
+
         string user(user_c);
 
         if (user == "exit" || user == "sair") {
@@ -79,4 +85,62 @@ void main_terminal(const string user_name) {
 
     mq_close(user_queue);
     mq_unlink(user_queue_name.c_str());
+}
+
+void grupo(const char u[], const char d[], const char m[]) {
+    string user(u), dest(d), msg(m);
+    dest.erase(0, 1);
+    canal channel;
+    bool find = false;
+
+    for (auto c : canais) {
+        if (c.nome == dest) {
+            channel = c;
+            find = true;
+            break;
+        }
+    }
+
+    if(!find) {
+        printf("Canal não encontrado.\n");
+        return;
+    }
+
+    if(msg == "join") {
+        channel.usuarios.push_back(user);
+        printf("Adicionado ao canal \'%s\'.\n", dest.c_str());
+
+        return;
+    }
+
+    if(msg == "leave") {
+        auto it = find(channel.usuarios.begin(), channel.usuarios.end(), user);
+        if(it != channel.usuarios.end()) {
+            printf("Removido com sucesso do canal\n");
+        }
+        else {
+            printf("Você não está no canal.\n");
+        }
+        return;
+    }
+
+    if(msg == "destroy") {
+        for (auto c : canais) {
+            if (c.nome == dest) {
+                if(c.dono == user) {
+                    /* Mandar mensagem para todos -> destroyed */
+                    /* Apagar canal */
+                }
+                else {
+                    printf("Você não é o dono do canal.\n");
+                }
+
+                break;
+            }
+        }
+
+        return;
+    }
+
+    /* Verificar se é membro */
 }
