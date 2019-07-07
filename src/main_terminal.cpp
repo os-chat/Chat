@@ -57,7 +57,10 @@ void main_terminal(const string user_name) {
                 printf("Erro ao criar canal \'%s\'\n", destinatario_c);
             }
             umask(prev_umask);
-            canais.push_back({ .dono = user_atual, .mq_canal = channel, .nome = channel_name, .usuarios = {} });
+            vector<string> user;
+            user.push_back(user_atual);
+            canais.push_back({ .dono = user_atual, .mq_canal = channel, .nome = destinatario, .usuarios = user });
+
             continue;
         }
 
@@ -90,57 +93,59 @@ void main_terminal(const string user_name) {
 void grupo(const char u[], const char d[], const char m[]) {
     string user(u), dest(d), msg(m);
     dest.erase(0, 1);
-    canal channel;
-    bool find = false;
+    canal *channel;
+    bool find_channel = false;
 
     for (auto c : canais) {
         if (c.nome == dest) {
-            channel = c;
-            find = true;
+            channel = &c;
+            find_channel = true;
             break;
         }
     }
 
-    if(!find) {
+    for(auto u : channel->usuarios) {
+        printf("U = (%s)\n", u.c_str());
+    }
+
+    if(!find_channel) {
         printf("Canal não encontrado.\n");
         return;
     }
 
     if(msg == "join") {
-        channel.usuarios.push_back(user);
+        channel->usuarios.push_back(user);
         printf("Adicionado ao canal \'%s\'.\n", dest.c_str());
 
         return;
     }
 
+    auto it = find(channel->usuarios.begin(), channel->usuarios.end(), user_atual);
+    if(it == channel->usuarios.end()) {
+        printf("#%s:%s:NOT A MEMBER\n", dest.c_str(), user_atual.c_str());
+    }
+
     if(msg == "leave") {
-        auto it = find(channel.usuarios.begin(), channel.usuarios.end(), user);
-        if(it != channel.usuarios.end()) {
-            printf("Removido com sucesso do canal\n");
-        }
-        else {
-            printf("Você não está no canal.\n");
-        }
+        channel->usuarios.erase(it);
+        printf("Removido com sucesso do canal\n");
         return;
     }
 
     if(msg == "destroy") {
-        for (auto c : canais) {
-            if (c.nome == dest) {
-                if(c.dono == user) {
-                    /* Mandar mensagem para todos -> destroyed */
-                    /* Apagar canal */
-                }
-                else {
-                    printf("Você não é o dono do canal.\n");
-                }
+        if(channel->dono == user_atual) {
 
-                break;
-            }
+            mq_close(channel->mq_canal);
+            mq_unlink(channel->nome.c_str());
+        }
+        else {
+            printf("Você não é o dono do canal.\n");
         }
 
         return;
     }
 
-    /* Verificar se é membro */
+    string mensagem = user_atual + ":#" + dest + ":" + msg;
+    fila_msg_enviadas.push(mensagem);
+
+    sem_post(&S);
 }
