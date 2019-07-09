@@ -6,7 +6,6 @@ void *monitora_canal(void *ptr) {
     mode_t prev_umask = umask(0155);
     mqd_t channel_queue;
     if ((channel_queue = mq_open(channel_name.c_str(), O_RDWR | O_CREAT | O_EXCL, 0622, &attr)) < 0 && errno == EEXIST) {
-        perror("mq_open");
         umask(prev_umask);
         printf("Erro ao criar canal \'%s\'\n", channel.c_str());
         pthread_exit(NULL);
@@ -16,25 +15,35 @@ void *monitora_canal(void *ptr) {
     vector<string> users;
     users.push_back(user_atual);
     while(1) {
-        mq_receive(channel_queue, msg_recebida, sizeof(msg_recebida), 0);
-        char *user = strtok(msg_recebida, ":");
+        if(mq_receive(channel_queue, msg_recebida, sizeof(msg_recebida), 0) < 0) {
+            perror("mq_receive:");
+            exit(1);
+        }
 
-        char *msg = strtok(NULL, ":");
-
-        if(strcmp(msg, "destroy") == 0) {
-            string user_str(user);
-            string mensagem = "#" + user_str + ":destroyed";
+        if(strcmp(msg_recebida, "destroy") == 0) {
+            string mensagem = "#" + channel + ":destroyed";
             for (auto u : users) {
                 string queue_name = "/chat-" + u;
-                mqd_t user_queue = mq_open(queue_name.c_str(), O_RDWR | O_CREAT, 0622, &attr);
+                mqd_t user_queue;
+
+                if((user_queue = mq_open(queue_name.c_str(), O_WRONLY | O_NONBLOCK)) < 0) {
+                    printf("Erro ao abrir chat\n");
+                    exit(1);
+                }
                 
-                mq_send(user_queue, mensagem.c_str(), sizeof(mensagem), 0);
-                mq_close(user_queue);
+                if(mq_send(user_queue, mensagem.c_str(), sizeof(mensagem), 0) < 0) {
+                    printf("Erro ao enviar\n");
+                    exit(1);
+                }
             }
+
             mq_close(channel_queue);
             mq_unlink(channel_name.c_str());
             break;
         }
+
+        char *user = strtok(msg_recebida, ":");
+        char *msg = strtok(NULL, ":");
 
         if(strcmp(msg, "join") == 0) {
             string u(user);
@@ -52,16 +61,20 @@ void *monitora_canal(void *ptr) {
         string user_str(user);
 
         if(find(users.begin(), users.end(), user_str) != users.end()) { // Usuário é membro
-            for(auto u : users) {
-                string mensagem = "#" + channel + ":" + u + ":<" + user_str + ">" + msg;
-                string queue_name = "/chat-" + u;
-                mqd_t user_queue = mq_open(queue_name.c_str(), O_WRONLY | O_NONBLOCK);
-                mq_send(user_queue, mensagem.c_str(), sizeof(mensagem), 0);
-                mq_close(user_queue);
+            for(auto u : users) { // Para cada usuário
+                if(u != user_str) { // Enviar para todos, menos para si mesmo
+                    string mensagem = "#" + channel + ":" + u + ":<" + user_str + ">" + msg; // #canal:user:<expedidor>texto
+                    string queue_name = "/chat-" + u;
+                    mqd_t user_queue = mq_open(queue_name.c_str(), O_WRONLY | O_NONBLOCK);
+                    mq_send(user_queue, mensagem.c_str(), sizeof(mensagem), 0);
+                }
             }
         }
         else { // Usuário não é membro
-
+            string mensagem = "#" + channel + ":" + user_str + ":NOT A MEMBER"; // #canal:user:NOT A MEMBER
+            string queue_name = "/chat-" + user_str;
+            mqd_t user_queue = mq_open(queue_name.c_str(), O_WRONLY | O_NONBLOCK);
+            mq_send(user_queue, mensagem.c_str(), sizeof(mensagem), 0);
         }
     }
 
@@ -92,7 +105,7 @@ void main_terminal(const string user_name) {
 
         scanf(" %10[^:\n]:%10[^:\n]:%500[^\n]", user_c, destinatario_c, texto_c);
 
-        if(destinatario_c[0] == '#') {
+        if(destinatario_c[0] == '#' or user_c[0] == '#') {
             grupo(user_c, destinatario_c, texto_c);
             continue;
         }
@@ -144,6 +157,10 @@ void main_terminal(const string user_name) {
         sem_post(&S);
     }
 
+    for(auto c : canais) {
+        string canal = "#" + c;
+        grupo(canal.c_str(), "destroy", "");
+    }
     mq_close(user_queue);
     mq_unlink(user_queue_name.c_str());
 }
@@ -192,7 +209,7 @@ void grupo(const char u[], const char d[], const char m[]) {
             }
         }
 
-        fila_msg_enviadas.push(mensagem); // #canal:user:ola
+        fila_msg_enviadas.push(mensagem); // #canal:user:texto
         sem_post(&S);
         return;
     }

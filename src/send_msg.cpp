@@ -38,7 +38,10 @@ void *unique_send(void *ptr) {
 void *send_canal(void *ptr) {
     string channel_name = "/canal-" + user_name;
     mqd_t channel_queue = mq_open(channel_name.c_str(), O_WRONLY | O_NONBLOCK);
-    string mensagem = destinatario + ":" + texto; // user:texto
+    string mensagem = destinatario; // user:texto
+    if(destinatario != "destroy")
+        mensagem += ":" + texto;
+    
     mq_send(channel_queue, mensagem.c_str(), sizeof(mensagem), 0);
     mq_close(channel_queue);
     pthread_exit(NULL);
@@ -54,6 +57,14 @@ void *send_msg(void *ptr) {
         auto tokens = split(token.c_str());
         user_name = tokens[0];
         destinatario = tokens[1];
+
+        if(destinatario == "destroy") {
+            user_name.erase(0,1);
+            pthread_t t;
+            pthread_create(&t, NULL, send_canal, NULL);
+            pthread_join(t, NULL);
+        }
+
         texto = tokens[2];
         vector<string> user_list = cmd_list();
 
