@@ -18,6 +18,12 @@ void *receive_msg(void *ptr) {
         dest = strtok(NULL, ":");
         if (strcmp(dest, "all") == 0)
             strcpy(msg, "Broadcast de ");
+        if(user[0] == '#') {
+            strcpy(msg, strtok(NULL, ":"));
+            string u(user), d(dest), m(msg);
+            string mensagem = u + ":" + d + ":" + m;
+            printf("%s\n", mensagem.c_str());
+        }
         strcat(msg, user);
         strcat(msg, ": ");
         strcpy(autenticacao, strtok(NULL, ":"));

@@ -1,5 +1,6 @@
 #include "send_msg.hpp"
 
+string user_name;
 string destinatario;
 string texto;
 
@@ -34,34 +35,12 @@ void *unique_send(void *ptr) {
     pthread_exit(NULL);
 }
 
-void *send_grupo(void *ptr) {
-    mqd_t other_queue;
-    string protc = protocol;
-    string user = (char *)ptr;
-    string res = protc + user;
-    other_queue = mq_open(res.c_str(), O_WRONLY | O_NONBLOCK);
-    string msg_enviada = fila_msg_enviadas.front();
-    string msg = "#" + destinatario + ":" + user + ":<" + user_atual + ">" + texto;
-    msg_enviada+=":";
-    msg_enviada+=to_string(generate_key())+"\n";
-
-    int tentativas = 0;
-    while (tentativas <= 3) {
-        if (mq_send(other_queue, msg_enviada.c_str(), sizeof(msg_enviada), 0) < 0 && errno == EAGAIN) {
-            tentativas++;
-            if (tentativas == 4)
-                break;
-            sleep(1 + tentativas);
-        }
-        else {
-            break;
-        }
-    }
-    if (tentativas > 3) {
-        printf("ERRO %s\n> ", msg_enviada.c_str());
-    }
-
-    mq_close(other_queue);
+void *send_canal(void *ptr) {
+    string channel_name = "/canal-" + user_name;
+    mqd_t channel_queue = mq_open(channel_name.c_str(), O_WRONLY | O_NONBLOCK);
+    string mensagem = destinatario + ":" + texto; // user:texto
+    mq_send(channel_queue, mensagem.c_str(), sizeof(mensagem), 0);
+    mq_close(channel_queue);
     pthread_exit(NULL);
 }
 
@@ -71,7 +50,6 @@ void *send_msg(void *ptr) {
 
         mqd_t other_queue;
         string other_queue_name;
-        string user_name;
         string token= fila_msg_enviadas.front();
         auto tokens = split(token.c_str());
         user_name = tokens[0];
@@ -96,31 +74,11 @@ void *send_msg(void *ptr) {
                 pthread_join(thread[i], NULL);
             }
         }
-        else if(destinatario[0] == '#') {
-            canal channel;
-            destinatario.erase(0, 1);
-            for (auto c : canais) {
-                if (c.nome == destinatario) {
-                    channel = c;
-                    break;
-                }
-            }
-
-            vector<pthread_t> thread;
-            for (size_t i = 0; i < channel.usuarios.size(); ++i) {
-                pthread_t t;
-                thread.push_back(t);
-            }
-
-            for (size_t i = 0; i < thread.size(); ++i) {
-                if (user_name != channel.usuarios[i]) {
-                    pthread_create(&thread[i], NULL, send_grupo, (void *)channel.usuarios[i].c_str());
-                }
-            }
-
-            for(size_t i = 0; i < thread.size(); ++i) {
-                pthread_join(thread[i], NULL);
-            }
+        else if(user_name[0] == '#') {
+            user_name.erase(0,1);
+            pthread_t t;
+            pthread_create(&t, NULL, send_canal, NULL);
+            pthread_join(t, NULL);
         }
         else {
             other_queue_name=protocol+destinatario;

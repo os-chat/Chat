@@ -41,12 +41,10 @@ string exec(const char *cmd)
     return result;
 }
 
-vector<string> split(const char *str, char c/*=':'*/)
-{
+vector<string> split(const char *str, char c/*=':'*/) {
     vector<string> result;
 
-    do
-    {
+    do {
         const char *begin = str;
 
         while(*str != c && *str)
@@ -65,4 +63,4 @@ queue<string> fila_msg_enviadas;
 sem_t S;
 map<int,bool> keys;
 string user_atual;
-vector<canal> canais;
+vector<string> canais;

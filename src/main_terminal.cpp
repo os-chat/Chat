@@ -1,5 +1,73 @@
 #include "main_terminal.hpp"
 
+void *monitora_canal(void *ptr) {
+    string channel = (char *)ptr;
+    string channel_name = "/canal-" + channel;
+    mode_t prev_umask = umask(0155);
+    mqd_t channel_queue;
+    if ((channel_queue = mq_open(channel_name.c_str(), O_RDWR | O_CREAT | O_EXCL, 0622, &attr)) < 0 && errno == EEXIST) {
+        perror("mq_open");
+        umask(prev_umask);
+        printf("Erro ao criar canal \'%s\'\n", channel.c_str());
+        pthread_exit(NULL);
+    }
+    umask(prev_umask);
+    char msg_recebida[524];
+    vector<string> users;
+    users.push_back(user_atual);
+    while(1) {
+        mq_receive(channel_queue, msg_recebida, sizeof(msg_recebida), 0);
+        char *user = strtok(msg_recebida, ":");
+
+        char *msg = strtok(NULL, ":");
+
+        if(strcmp(msg, "destroy") == 0) {
+            string user_str(user);
+            string mensagem = "#" + user_str + ":destroyed";
+            for (auto u : users) {
+                string queue_name = "/chat-" + u;
+                mqd_t user_queue = mq_open(queue_name.c_str(), O_RDWR | O_CREAT, 0622, &attr);
+                
+                mq_send(user_queue, mensagem.c_str(), sizeof(mensagem), 0);
+                mq_close(user_queue);
+            }
+            mq_close(channel_queue);
+            mq_unlink(channel_name.c_str());
+            break;
+        }
+
+        if(strcmp(msg, "join") == 0) {
+            string u(user);
+            users.push_back(u);
+            continue;
+        }
+
+        if(strcmp(msg, "leave") == 0) {
+            string u(user);
+            auto it = find(users.begin(), users.end(), u);
+            if(it != users.end()) users.erase(it);
+            continue;
+        }
+
+        string user_str(user);
+
+        if(find(users.begin(), users.end(), user_str) != users.end()) { // Usuário é membro
+            for(auto u : users) {
+                string mensagem = "#" + channel + ":" + u + ":<" + user_str + ">" + msg;
+                string queue_name = "/chat-" + u;
+                mqd_t user_queue = mq_open(queue_name.c_str(), O_WRONLY | O_NONBLOCK);
+                mq_send(user_queue, mensagem.c_str(), sizeof(mensagem), 0);
+                mq_close(user_queue);
+            }
+        }
+        else { // Usuário não é membro
+
+        }
+    }
+
+    pthread_exit(NULL);
+}
+
 void main_terminal(const string user_name) {
     signal(SIGINT, handle_sigint);
     string user_queue_name(protocol);
@@ -48,19 +116,9 @@ void main_terminal(const string user_name) {
         string destinatario(destinatario_c);
 
         if(user == "cc") {
-            string channel_name = "/canal-" + destinatario;
-            mode_t prev_umask = umask(0155);
-            mqd_t channel;
-            if ((channel = mq_open(channel_name.c_str(), O_RDWR | O_CREAT | O_EXCL, 0622, &attr)) < 0 && errno == EEXIST) {
-                perror("mq_open");
-                umask(prev_umask);
-                printf("Erro ao criar canal \'%s\'\n", destinatario_c);
-            }
-            umask(prev_umask);
-            vector<string> user;
-            user.push_back(user_atual);
-            canais.push_back({ .dono = user_atual, .mq_canal = channel, .nome = destinatario, .usuarios = user });
-
+            canais.push_back(destinatario);
+            pthread_t t;
+            pthread_create(&t, NULL, monitora_canal, (void *)destinatario.c_str());
             continue;
         }
 
@@ -92,60 +150,50 @@ void main_terminal(const string user_name) {
 
 void grupo(const char u[], const char d[], const char m[]) {
     string user(u), dest(d), msg(m);
-    dest.erase(0, 1);
-    canal *channel;
-    bool find_channel = false;
-
-    for (auto c : canais) {
-        if (c.nome == dest) {
-            channel = &c;
-            find_channel = true;
-            break;
+    string mensagem = dest + ":" + user + ":" + msg;
+    bool encontrado = false;
+    if(dest == "destroy" && user[0] == '#' && msg == "") {
+        user.erase(0,1);
+        auto it = find(canais.begin(), canais.end(), user);
+        if(it != canais.end()) {                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                    
+            string mensagem = "#" + user + ":" + dest; // #canal:destroy
+            fila_msg_enviadas.push(mensagem);
+            sem_post(&S);
+            canais.erase(it);
         }
-    }
-
-    for(auto u : channel->usuarios) {
-        printf("U = (%s)\n", u.c_str());
-    }
-
-    if(!find_channel) {
-        printf("Canal não encontrado.\n");
-        return;
-    }
-
-    if(msg == "join") {
-        channel->usuarios.push_back(user);
-        printf("Adicionado ao canal \'%s\'.\n", dest.c_str());
+        else
+            printf("Você não é o dono do canal\n");
 
         return;
     }
+    else {
+        dest.erase(0,1);
+        DIR *d;
+        struct dirent *dir;
+        d = opendir("/dev/mqueue");
+        if (d) {
+            while ((dir = readdir(d)) != NULL) {
+                char *token;
+                token = strtok(dir->d_name, "-");
+                if (strcmp(token, "canal") == 0) {
+                    token = strtok(NULL, "-");
+                    if(string(token) == dest) {
+                        encontrado = true;
+                        break;
+                    }
+                }
+            }
 
-    auto it = find(channel->usuarios.begin(), channel->usuarios.end(), user_atual);
-    if(it == channel->usuarios.end()) {
-        printf("#%s:%s:NOT A MEMBER\n", dest.c_str(), user_atual.c_str());
-    }
+            closedir(d);
 
-    if(msg == "leave") {
-        channel->usuarios.erase(it);
-        printf("Removido com sucesso do canal\n");
-        return;
-    }
-
-    if(msg == "destroy") {
-        if(channel->dono == user_atual) {
-
-            mq_close(channel->mq_canal);
-            mq_unlink(channel->nome.c_str());
-        }
-        else {
-            printf("Você não é o dono do canal.\n");
+            if(!encontrado) {
+                printf("Canal não encontrado\n");
+                return;
+            }
         }
 
+        fila_msg_enviadas.push(mensagem); // #canal:user:ola
+        sem_post(&S);
         return;
     }
-
-    string mensagem = user_atual + ":#" + dest + ":" + msg;
-    fila_msg_enviadas.push(mensagem);
-
-    sem_post(&S);
 }
