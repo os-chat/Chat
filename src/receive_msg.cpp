@@ -28,6 +28,7 @@ void *receive_msg(void *ptr) {
             }
 
             printf("%s\n> ", mensagem.c_str());
+            fflush(stdout);
             continue;
         }
 
@@ -63,6 +64,7 @@ void *receive_msg(void *ptr) {
             int cod = stoi(strtok(autenticacao, "|"));
             if(ok == 'Y') {
                 printf("%s\n> ", mensagens[cod].c_str());
+                fflush(stdout);
                 mensagens.erase(cod);
             }
         }

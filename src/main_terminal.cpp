@@ -100,7 +100,7 @@ void main_terminal(const string user_name) {
         strcpy(destinatario_c, "");
         strcpy(texto_c, "");
         printf("> ");
-
+        fflush(stdout);
         scanf(" %10[^:\n]:%10[^:\n]:%500[^\n]", user_c, destinatario_c, texto_c);
 
         if(destinatario_c[0] == '#' or user_c[0] == '#') {
@@ -108,7 +108,6 @@ void main_terminal(const string user_name) {
             continue;
         }
             
-
         string user(user_c);
 
         if (user == "exit" || user == "sair") {
