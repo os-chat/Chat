@@ -27,13 +27,11 @@ void *monitora_canal(void *ptr) {
                 mqd_t user_queue;
 
                 if((user_queue = mq_open(queue_name.c_str(), O_WRONLY | O_NONBLOCK)) < 0) {
-                    printf("Erro ao abrir chat\n");
-                    exit(1);
+                    continue;
                 }
                 
                 if(mq_send(user_queue, mensagem.c_str(), sizeof(mensagem), 0) < 0) {
-                    printf("Erro ao enviar\n");
-                    exit(1);
+                    continue;
                 }
             }
 
