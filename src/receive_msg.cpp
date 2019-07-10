@@ -17,14 +17,14 @@ void *receive_msg(void *ptr) {
         user = strtok(msg_recebida, ":");
         dest = strtok(NULL, ":");
 
-        if(user[0] == '#') {
+        if(user[0] == '#') { // #canal:...
             string u(user), d(dest);
             string mensagem = u + ":" + d;
 
-            if(d != "destroyed") {
+            if(d != "destroyed") { // #canal:destroyed
                 strcpy(msg, strtok(NULL, ":"));
                 string m(msg);
-                mensagem += ":" + m;
+                mensagem += ":" + m; // #canal:user:texto
             }
 
             printf("%s\n> ", mensagem.c_str());

@@ -38,9 +38,9 @@ void *unique_send(void *ptr) {
 void *send_canal(void *ptr) {
     string channel_name = "/canal-" + user_name;
     mqd_t channel_queue = mq_open(channel_name.c_str(), O_WRONLY | O_NONBLOCK);
-    string mensagem = destinatario; // user:texto
+    string mensagem = destinatario; // user
     if(destinatario != "destroy")
-        mensagem += ":" + texto;
+        mensagem += ":" + texto; // user:texto
     
     mq_send(channel_queue, mensagem.c_str(), sizeof(mensagem), 0);
     mq_close(channel_queue);
@@ -85,7 +85,7 @@ void *send_msg(void *ptr) {
                 pthread_join(thread[i], NULL);
             }
         }
-        else if(user_name[0] == '#') {
+        else if(user_name[0] == '#') { // Se for #canal:...
             user_name.erase(0,1);
             pthread_t t;
             pthread_create(&t, NULL, send_canal, NULL);

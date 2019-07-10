@@ -157,9 +157,9 @@ void main_terminal(const string user_name) {
         sem_post(&S);
     }
 
-    for(auto c : canais) {
+    for(auto c : canais) { // Para cada canal que é dono
         string canal = "#" + c;
-        grupo(canal.c_str(), "destroy", "");
+        grupo(canal.c_str(), "destroy", ""); // Destruir canal
     }
     mq_close(user_queue);
     mq_unlink(user_queue_name.c_str());
@@ -172,13 +172,13 @@ void grupo(const char u[], const char d[], const char m[]) {
     if(dest == "destroy" && user[0] == '#' && msg == "") {
         user.erase(0,1);
         auto it = find(canais.begin(), canais.end(), user);
-        if(it != canais.end()) {                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                    
+        if(it != canais.end()) { // Se encontrar canal na lista de canais que é dono                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                               
             string mensagem = "#" + user + ":" + dest; // #canal:destroy
             fila_msg_enviadas.push(mensagem);
             sem_post(&S);
             canais.erase(it);
         }
-        else
+        else // Se não encontrar, não é dono
             printf("Você não é o dono do canal\n");
 
         return;
@@ -203,7 +203,7 @@ void grupo(const char u[], const char d[], const char m[]) {
 
             closedir(d);
 
-            if(!encontrado) {
+            if(!encontrado) { // Se não encontrar na /dev/mqueue
                 printf("Canal não encontrado\n");
                 return;
             }
