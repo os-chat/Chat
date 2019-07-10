@@ -63,6 +63,8 @@ void *send_msg(void *ptr) {
             pthread_t t;
             pthread_create(&t, NULL, send_canal, NULL);
             pthread_join(t, NULL);
+            fila_msg_enviadas.pop();
+            continue;
         }
 
         texto = tokens[2];
@@ -97,7 +99,6 @@ void *send_msg(void *ptr) {
             // O_WRONLY = Open - Write Only
             if ((other_queue = mq_open(other_queue_name.c_str(), O_WRONLY | O_NONBLOCK)) < 0) {
                 printf("UNKNOWNUSER %s\n> ", destinatario.c_str());
-                fflush(stdout);
             }
             else {
                 pthread_t t;

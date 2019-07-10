@@ -65,8 +65,6 @@ void *receive_msg(void *ptr) {
                 printf("%s\n> ", mensagens[cod].c_str());
                 mensagens.erase(cod);
             }
-            else
-                printf("Alguém está tentando te enganar se passando por %s\n", user);
         }
         else {
             cod = stoi(strtok(NULL, ":"));

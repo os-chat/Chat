@@ -157,10 +157,12 @@ void main_terminal(const string user_name) {
         sem_post(&S);
     }
 
-    for(auto c : canais) { // Para cada canal que é dono
-        string canal = "#" + c;
+    while(canais.size()) {
+        string canal = "#" + canais[0];
         grupo(canal.c_str(), "destroy", ""); // Destruir canal
+        sleep(1);
     }
+
     mq_close(user_queue);
     mq_unlink(user_queue_name.c_str());
 }
