@@ -5,6 +5,7 @@
 
 int main(int argc, char *argv[])
 {
+    printf(">>>>%s<<<<", argv[1]);
     if (argc < 2) {
         printf("Modo de utilização: ./Chat <nome-do-usuário>\nEncerrando programa.\n");
         return 0;

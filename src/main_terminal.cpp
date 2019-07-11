@@ -134,7 +134,7 @@ void main_terminal(const string user_name) {
         }
 
         if (user != user_name) {
-            printf("Expedidor inválido, tente novamente.\n");
+            printf("Expedidor inválido, tente novamente.\n(%s != %s)\n", user.c_str(), user_name.c_str());
             continue;
         }
 
