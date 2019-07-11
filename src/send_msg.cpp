@@ -28,7 +28,7 @@ void *unique_send(void *ptr) {
         }
     }
     if (tentativas > 3) {
-        printf("ERRO %s\n> ", msg_enviada.c_str());
+        printf("ERRO %s\n", msg_enviada.c_str());
         fflush(stdout);
     }
 
@@ -99,7 +99,7 @@ void *send_msg(void *ptr) {
 
             // O_WRONLY = Open - Write Only
             if ((other_queue = mq_open(other_queue_name.c_str(), O_WRONLY | O_NONBLOCK)) < 0) {
-                printf("UNKNOWNUSER %s\n> ", destinatario.c_str());
+                printf("UNKNOWNUSER %s\n", destinatario.c_str());
                 fflush(stdout);
             }
             else {

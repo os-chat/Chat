@@ -27,7 +27,7 @@ void *receive_msg(void *ptr) {
                 mensagem += ":" + m; // #canal:user:texto
             }
 
-            printf("%s\n> ", mensagem.c_str());
+            printf("%s\n", mensagem.c_str());
             fflush(stdout);
             continue;
         }
@@ -63,7 +63,7 @@ void *receive_msg(void *ptr) {
             char ok = autenticacao[strlen(autenticacao)-2];
             int cod = stoi(strtok(autenticacao, "|"));
             if(ok == 'Y') {
-                printf("%s\n> ", mensagens[cod].c_str());
+                printf("%s\n", mensagens[cod].c_str());
                 fflush(stdout);
                 mensagens.erase(cod);
             }

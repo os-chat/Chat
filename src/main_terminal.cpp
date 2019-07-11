@@ -99,7 +99,8 @@ void main_terminal(const string user_name) {
         strcpy(user_c, "");
         strcpy(destinatario_c, "");
         strcpy(texto_c, "");
-        printf("> ");
+/*         printf("> ");
+ */
         fflush(stdout);
         scanf(" %10[^:\n]:%10[^:\n]:%500[^\n]", user_c, destinatario_c, texto_c);
 
