@@ -27,8 +27,9 @@ function __templateEXIT()
 
 function __templateSENDMSG()
 {
-  local TO="$1"
-  local MSG="$2"
+  local USER="$1"
+  local TO="$2"
+  local MSG="$3"
 
   # template para o envio de mensagem, se o seu programa pede primeiro o
   # username em uma linha e depois a mensagem em outra siga como abaixo
@@ -37,17 +38,18 @@ function __templateSENDMSG()
 
   #Se o seu programa pede qu ena mesma linha tenha o destinatário e a
   #mensagem, comente as linhas acima e descomente abaixo
-  echo "$TO:$MSG"
+  echo "$USER:$TO:$MSG"
 }
 
 function __templateBROADCAST()
 {
-  local MSG="$1"
+  local USER="$1"
+  local MSG="$2"
 
   #como enviar mensagem do tipo broadcast?
   #abaixo ele faz o uso do template de mensagem, utilizando o destinatário
   #como "all"
-  __templateSENDMSG "all" "$MSG"
+  __templateSENDMSG "$USER" "all" "$MSG"
 }
 
 function __templateCRIARSALA()
@@ -59,20 +61,23 @@ function __templateCRIARSALA()
 
 function __templateSENDMSGSALA()
 {
-  local SALA="$1"
-  local MSG="$2"
+  local USER="$1"
+  local SALA="$2"
+  local MSG="$3"
   #template enviar mensagem em sala
-  echo "#$SALA:$MSG"
+  echo "$USER:#$SALA:$MSG"
 }
 
 function __templateJOINSALA()
 {
-  local SALA=$1
-  echo "#$SALA:join"
+  local USER=$1
+  local SALA=$2
+  echo "$USER:#$SALA:join"
 }
 
 function __templateEXITSALA()
 {
-  local SALA=$1
-  echo "#$SALA:leave"
+  local USER=$1
+  local SALA=$2
+  echo "$USER:#$SALA:leave"
 }

@@ -14,7 +14,7 @@ int main(int argc, char *argv[])
     attr.mq_msgsize = sizeof(char) * 524;
     attr.mq_flags = 0;
     string user_name(argv[1]);
-    const vector<string> nome_negado = {"all", "exit"};
+    const vector<string> nome_negado = {"all", "exit", "destroy", "join", "leave"};
 
     while(find(nome_negado.begin(), nome_negado.end(), user_name) != nome_negado.end()) {
         printf("Nao é permitido usar o nome \'%s\', tente novamente com outro nome: ", user_name.c_str());
@@ -52,17 +52,6 @@ int main(int argc, char *argv[])
             } while (m[0] != system_user);
         }
     }
-
-    printf("-----------------------");
-    for (size_t i = 0; i < user_name.size(); ++i)
-        printf("-");
-
-    printf("\n| Bem-vindo ao Chat, %s |\n", user_name.c_str());
-    printf("-----------------------");
-    for (size_t i = 0; i < user_name.size(); ++i)
-        printf("-");
-    
-    printf("\n");
 
     user_atual = user_name;
     main_terminal(user_name);
