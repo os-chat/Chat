@@ -132,10 +132,10 @@ void main_terminal(const string user_name) {
             continue;
         }
 
-        if (user != user_name) {
+/*         if (user != user_name) {
             printf("Expedidor inválido, tente novamente.\n");
             continue;
-        }
+        } */
 
         if (!strlen(destinatario_c) || !strlen(texto_c)) {
             printf("Formato inválido, tente novamente.\n");
